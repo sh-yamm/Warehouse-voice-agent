@@ -1,0 +1,64 @@
+{
+  "model": "tiny.en",
+  "compute": "int8",
+  "device": "cuda",
+  "chunk_ms": 800,
+  "silence_ms": 800,
+  "started_at": "2026-04-09T01:58:08",
+  "utterances": [
+    {
+      "id": 1,
+      "timestamp": "2026-04-09T01:58:44.151",
+      "audio_secs": 1.919,
+      "post_silence_ms": 41.0,
+      "final_chunk_ms": 40.8,
+      "n_chunks": 2,
+      "text": "Hello, hello, hello, hello."
+    },
+    {
+      "id": 2,
+      "timestamp": "2026-04-09T01:58:48.745",
+      "audio_secs": 1.32,
+      "post_silence_ms": 195.7,
+      "final_chunk_ms": 195.5,
+      "n_chunks": 2,
+      "text": "Okay."
+    },
+    {
+      "id": 3,
+      "timestamp": "2026-04-09T01:58:53.301",
+      "audio_secs": 1.077,
+      "post_silence_ms": 352.5,
+      "final_chunk_ms": 352.3,
+      "n_chunks": 1,
+      "text": "You know what?"
+    },
+    {
+      "id": 4,
+      "timestamp": "2026-04-09T01:58:57.992",
+      "audio_secs": 2.84,
+      "post_silence_ms": 201.8,
+      "final_chunk_ms": 201.6,
+      "n_chunks": 4,
+      "text": "latencies around you know I think it's around"
+    },
+    {
+      "id": 5,
+      "timestamp": "2026-04-09T01:59:22.877",
+      "audio_secs": 1.32,
+      "post_silence_ms": 445.7,
+      "final_chunk_ms": 445.4,
+      "n_chunks": 2,
+      "text": "Dan Broke"
+    }
+  ],
+  "summary": {
+    "total_utterances": 5,
+    "avg_post_silence_ms": 247.3,
+    "p50_post_silence_ms": 201.8,
+    "p95_post_silence_ms": 445.7,
+    "avg_final_chunk_ms": 247.1,
+    "p95_final_chunk_ms": 445.4,
+    "avg_audio_secs": 1.7
+  }
+}
