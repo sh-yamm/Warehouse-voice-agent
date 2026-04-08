@@ -1,0 +1,7 @@
+# Step 1 — install PyTorch with CUDA 12.1 first (brings cublas64_12.dll for CTranslate2 4.x)
+# pip install torch --index-url https://download.pytorch.org/whl/cu121
+
+faster-whisper>=1.1.0
+sounddevice>=0.4.6
+numpy>=1.26.0
+rich>=13.7.0
