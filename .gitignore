@@ -1,0 +1,18 @@
+stt_inference/results.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Models, data, outputs
+*.gguf
+*.onnx
+*.nemo
+models/
+*.db
+*.sqlite
+runs/
+*.jsonl
