@@ -66,7 +66,7 @@ Pipecat pipeline (one per call)
    and the next 6 free slots are loaded before dialling and placed in the static prefix of the
    system prompt. Most turns need no tool call; the static prefix keeps llama.cpp's prompt cache hot.
 3. **Deterministic time parsing.** Phrases like "tomorrow after 5" are normalised to a time window in
-   code (`dateparser` + rules); the LLM never does date arithmetic.
+   code (a rule-based parser); the LLM never does date arithmetic.
 4. **Barge-in** uses Pipecat's interruption frames (cancel LLM, flush TTS, drop queued audio,
    truncate assistant message to what was actually spoken). Backchannel guard: user speech
    < 300 ms or matching a backchannel list ("mm-hmm", "okay", "yeah") while the agent speaks does
@@ -122,17 +122,18 @@ Rules:
 
 ```
 warehouses(id, name, zone)
-products(sku, name, spoken_name, unit_price)
+products(sku, name, spoken_name, category, unit_price)
 stock(warehouse_id, sku, on_hand, reserved, restock_eta)   -- available = on_hand - reserved
 customers(id, name, phone, default_address)
-orders(id, customer_id, warehouse_id, status, address, notes, created_at)
+orders(id, customer_id, warehouse_id, status, address, notes, slot_id, callback_at, created_at)
   -- status: pending_schedule | scheduled | cancelled | callback | needs_human
-order_lines(order_id, sku, qty, fulfilled_qty, substitute_sku)
-delivery_slots(id, warehouse_id, start_ts, end_ts, capacity, booked, held)
-slot_holds(slot_id, order_id, expires_at)
-calls(id, order_id, started_at, ended_at, outcome, summary, transcript_json)
+order_lines(order_id, sku, qty, reserved_qty, substitute_sku, substitute_qty, resolution)
+  -- resolution: NULL | partial | substitute | wait
+delivery_slots(id, warehouse_id, start_ts, end_ts, capacity, booked)
+slot_holds(slot_id, order_id UNIQUE, expires_at)   -- held seats are derived from unexpired holds
+calls(id, order_id, started_at, ended_at, outcome, summary, transcript_json)        -- added with the pipeline
 turn_metrics(call_id, turn_idx, vad_stop_ms, eot_ms, stt_final_ms, llm_ttft_ms,
-             first_clause_ms, tts_first_audio_ms, v2v_ms, interrupted, preempt_used)
+             first_clause_ms, tts_first_audio_ms, v2v_ms, interrupted, preempt_used)  -- added with the pipeline
 ```
 
 - All access goes through a `Repository` class; swapping to Postgres changes only that module.
