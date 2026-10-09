@@ -33,6 +33,9 @@ class GreedyWhisperSTTService(whisper_stt.WhisperSTTService):
             self._model.transcribe, beam_size=1, best_of=1, without_timestamps=True,
             condition_on_previous_text=False,
         )
+        # First CUDA decode is slow (kernel/cuBLAS init); pay it at load, not on the customer's first turn.
+        segments, _ = self._model.transcribe(np.zeros(16000, dtype=np.float32), language="en")
+        list(segments)  # decoding is lazy; iterate to actually run it
 
 
 class KokoroTorchTTSService(TTSService):
@@ -47,6 +50,9 @@ class KokoroTorchTTSService(TTSService):
         model = KModel(repo_id="hexgrad/Kokoro-82M").to(device).eval()
         self._pipeline = KPipeline(lang_code="a", repo_id="hexgrad/Kokoro-82M", model=model)
         self._resampler = create_stream_resampler()
+        # The first synthesis after loading takes seconds (CUDA init). TTSService gives up on a context after
+        # stop_frame_timeout_s (3 s) without audio, which silenced the greeting, so warm up here.
+        self._synthesize("Warming up.")
 
     def can_generate_metrics(self) -> bool:
         return True
