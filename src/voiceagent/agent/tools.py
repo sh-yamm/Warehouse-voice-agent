@@ -111,6 +111,7 @@ class CallSession:
     def resolve_shortage(self, sku: str, choice: str, substitute_sku: str = "") -> dict:
         now = self.clock()
         deliver_after = None
+        released = False
         if choice == "substitute":
             ok = self.inventory.apply_substitution(self.order_id, sku, substitute_sku)
         elif choice == "partial":
@@ -120,12 +121,19 @@ class CallSession:
             ok = eta is not None
             if eta is not None:
                 deliver_after = f"{spoken_day(eta.date(), now)} {spoken_time(eta)}"
+                held = self.repo.get_slot(self.held_slot_id) if self.held_slot_id else None
+                if held is not None and held.start < eta:
+                    self.repo.delete_hold(self.order_id)
+                    self.held_slot_id = None
+                    released = True
         else:
             return {"status": "error", "message": f"choice must be one of {', '.join(SHORTAGE_CHOICES)}"}
         result = {"status": "done" if ok else "failed",
                   "remaining_shortages": [s.sku for s in self.inventory.shortages(self.order_id)]}
         if deliver_after:
             result["deliver_after"] = deliver_after
+        if released:
+            result["held_slot_released"] = True
         return result
 
     # ── order details ──────────────────────────────────────────────────────

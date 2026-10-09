@@ -133,3 +133,7 @@ def test_tools_are_logged(flow):
     finally:
         logger.remove(sink)
     assert any("check_slot" in line and "tomorrow after 5" in line and "held" in line for line in lines)
+
+
+def test_order_task_forbids_choosing_for_the_customer(flow):
+    assert "never choose for them" in flow.order_node()["task_messages"][0]["content"]

@@ -122,3 +122,10 @@ def test_order_summary(session):
     assert summary["items"][1] == "1 whole wheat bread instead of brown bread"
     assert summary["slot"] == "tomorrow, 5 to 6 PM"
     assert summary["address"] == "12 MG Road, Bengaluru"
+
+
+def test_wait_restock_releases_hold_before_restock(session, repo):
+    session.check_slot("today at noon")
+    result = session.resolve_shortage("BREAD1", "wait")
+    assert result["held_slot_released"] is True
+    assert session.held_slot_id is None and repo.get_active_hold(1, NOW) is None

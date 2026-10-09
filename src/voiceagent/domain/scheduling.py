@@ -81,6 +81,9 @@ class SchedulingService:
             order = self.repo.get_order(order_id)
             if slot_id is None or order is None or not order.is_open:
                 return None
+            if self.repo.get_slot(slot_id).start < self._earliest(order_id, now):
+                self.repo.delete_hold(order_id)  # held before the customer chose to wait for a restock
+                return None
             self.repo.increment_booked(slot_id)
             self.repo.delete_hold(order_id)
             self.repo.update_order(order_id, status="scheduled", slot_id=slot_id, callback_at=None)

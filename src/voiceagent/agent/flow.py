@@ -113,7 +113,8 @@ class DeliveryFlow:
 
         task = ("Tell the customer in one or two sentences what their order contains. "
                 "If an item is SHORT, explain it and offer the options: a listed substitute, sending what is "
-                "available, or waiting for the restock; then call resolve_shortage with their choice. "
+                "available, or waiting for the restock. Call resolve_shortage only after the customer says which option "
+                "they want; never choose for them. "
                 "If nothing is short, call items_confirmed once they are happy. "
                 "If they already mention a delivery time, call check_slot with their words.")
         return self._node("present_order", task, [resolve_shortage, items_confirmed, self._check_slot_function()])
