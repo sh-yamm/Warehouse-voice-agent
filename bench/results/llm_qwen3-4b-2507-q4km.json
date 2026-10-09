@@ -1,0 +1,285 @@
+{
+  "name": "llm_qwen3-4b-2507-q4km",
+  "device": "cuda (llama-server -ngl 99)",
+  "recorded_at": "2026-10-09T14:45:00",
+  "machine": "Shyam-PC",
+  "model": "qwen3-4b-2507-q4km",
+  "order_context": "CUSTOMER: Divya Reddy\nDELIVERY ADDRESS: 48 BTM Layout 2nd Stage, Bengaluru\nNOTES: none\nORDER #1:\n- 2 x Haldiram potato chips [SNA131]: SHORT, only 0 of 2 available, restock Thursday 9 AM; substitutes: none\n- 1 x Bru tea powder [BEV151]: ready\n- 1 x Modern brown bread [BAK040]: ready\nNEXT FREE SLOTS:\n- slot 42: today, 10 to 11 AM\n- slot 44: today, 12 to 1 PM\n- slot 45: today, 1 to 2 PM\n- slot 46: today, 2 to 3 PM\n- slot 47: today, 3 to 4 PM\n- slot 49: today, 5 to 6 PM",
+  "cold_ttft_ms": 729.3,
+  "warm": {
+    "ttft_ms": {
+      "n": 20,
+      "p50": 104.6,
+      "p95": 194.0,
+      "mean": 125.3,
+      "min": 72.2,
+      "max": 229.5
+    },
+    "first_clause_ms": {
+      "n": 20,
+      "p50": 241.2,
+      "p95": 810.9,
+      "mean": 331.8,
+      "min": 123.3,
+      "max": 831.4
+    },
+    "first_sentence_ms": {
+      "n": 20,
+      "p50": 490.6,
+      "p95": 1137.8,
+      "mean": 579.6,
+      "min": 259.5,
+      "max": 1191.9
+    },
+    "total_ms": {
+      "n": 20,
+      "p50": 1282.4,
+      "p95": 1928.7,
+      "mean": 1336.6,
+      "min": 473.3,
+      "max": 1952.1
+    },
+    "tokens_per_s": {
+      "n": 20,
+      "p50": 26.8,
+      "p95": 31.5,
+      "mean": 27.6,
+      "min": 22.5,
+      "max": 35.7
+    }
+  },
+  "gpu_used_mb_peak": 7615,
+  "turns": [
+    {
+      "rep": 0,
+      "turn": 0,
+      "ttft_ms": 729.3,
+      "first_clause_ms": 825.2,
+      "first_sentence_ms": 1872.3,
+      "total_ms": 2453.2,
+      "tokens_per_s": 26.2,
+      "prompt_tokens": 312,
+      "reply": "Hi Divya, we have 2 Haldiram potato chips, 1 Bru tea powder, and 1 Modern brown bread ready for delivery. The earliest slot available today is 10 to 11 AM."
+    },
+    {
+      "rep": 0,
+      "turn": 1,
+      "ttft_ms": 159.7,
+      "first_clause_ms": 498.4,
+      "first_sentence_ms": 498.4,
+      "total_ms": 1744.6,
+      "tokens_per_s": 28.4,
+      "prompt_tokens": 17,
+      "reply": "Yes, the tea powder and brown bread are in stock. The potato chips are currently low, only 0 of 2 available, and will be restocked Thursday at 9 AM. We can't deliver them now."
+    },
+    {
+      "rep": 0,
+      "turn": 2,
+      "ttft_ms": 81.8,
+      "first_clause_ms": 237.9,
+      "first_sentence_ms": 286.0,
+      "total_ms": 1192.8,
+      "tokens_per_s": 31.5,
+      "prompt_tokens": 18,
+      "reply": "Got it, Divya. We'll deliver the tea powder, brown bread, and the potato chips at your earliest available slot, 10 to 11 AM."
+    },
+    {
+      "rep": 0,
+      "turn": 3,
+      "ttft_ms": 104.6,
+      "first_clause_ms": 181.3,
+      "first_sentence_ms": 490.6,
+      "total_ms": 1178.7,
+      "tokens_per_s": 29.8,
+      "prompt_tokens": 19,
+      "reply": "Sorry, Divya, we don't have slots available tomorrow after 5 PM. The next available slot today is 10 to 11 AM."
+    },
+    {
+      "rep": 0,
+      "turn": 4,
+      "ttft_ms": 83.5,
+      "first_clause_ms": 298.2,
+      "first_sentence_ms": 298.2,
+      "total_ms": 1577.3,
+      "tokens_per_s": 26.8,
+      "prompt_tokens": 16,
+      "reply": "Okay, Divya. We'll deliver your tea powder, brown bread, and potato chips to 48 BTM Layout 2nd Stage at 10 to 11 AM today."
+    },
+    {
+      "rep": 0,
+      "turn": 5,
+      "ttft_ms": 87.7,
+      "first_clause_ms": 209.8,
+      "first_sentence_ms": 259.5,
+      "total_ms": 1426.3,
+      "tokens_per_s": 30.6,
+      "prompt_tokens": 18,
+      "reply": "Got it, Divya. We'll leave the items with the security guard at 48 BTM Layout 2nd Stage. Delivery is set for 10 to 11 AM today."
+    },
+    {
+      "rep": 0,
+      "turn": 6,
+      "ttft_ms": 136.2,
+      "first_clause_ms": 195.0,
+      "first_sentence_ms": 378.2,
+      "total_ms": 473.3,
+      "tokens_per_s": 35.7,
+      "prompt_tokens": 19,
+      "reply": "You're welcome, Divya. Have a great day!"
+    },
+    {
+      "rep": 1,
+      "turn": 0,
+      "ttft_ms": 122.7,
+      "first_clause_ms": 177.9,
+      "first_sentence_ms": 1137.8,
+      "total_ms": 1928.7,
+      "tokens_per_s": 29.4,
+      "prompt_tokens": 1,
+      "reply": "Hi Divya, we have a delivery for you with 2 Haldiram potato chips, 1 Bru tea powder, and 1 Modern brown bread. The earliest slot available today is 10 to 11 AM. Would that work for you?"
+    },
+    {
+      "rep": 1,
+      "turn": 1,
+      "ttft_ms": 72.2,
+      "first_clause_ms": 531.9,
+      "first_sentence_ms": 531.9,
+      "total_ms": 1861.1,
+      "tokens_per_s": 24.1,
+      "prompt_tokens": 17,
+      "reply": "Yes, the Bru tea powder and brown bread are in stock. The potato chips are currently low, only one left, so we can only deliver one. We\u2019ll send the rest on Thursday at 9 AM."
+    },
+    {
+      "rep": 1,
+      "turn": 2,
+      "ttft_ms": 93.8,
+      "first_clause_ms": 831.4,
+      "first_sentence_ms": 831.4,
+      "total_ms": 1073.0,
+      "tokens_per_s": 24.5,
+      "prompt_tokens": 18,
+      "reply": "Great, I\u2019ll schedule your delivery for 10 to 11 AM today. Thank you, Divya!"
+    },
+    {
+      "rep": 1,
+      "turn": 3,
+      "ttft_ms": 85.4,
+      "first_clause_ms": 284.7,
+      "first_sentence_ms": 1053.2,
+      "total_ms": 1380.7,
+      "tokens_per_s": 25.5,
+      "prompt_tokens": 19,
+      "reply": "Sorry, Divya, the next available slot after 5 PM is tomorrow at 5 to 6 PM. We can deliver that instead if you'd like."
+    },
+    {
+      "rep": 1,
+      "turn": 4,
+      "ttft_ms": 154.4,
+      "first_clause_ms": 810.9,
+      "first_sentence_ms": 810.9,
+      "total_ms": 913.8,
+      "tokens_per_s": 29.1,
+      "prompt_tokens": 16,
+      "reply": "Okay, I\u2019ve booked your delivery for tomorrow at 5 to 6 PM. Thanks, Divya!"
+    },
+    {
+      "rep": 1,
+      "turn": 5,
+      "ttft_ms": 78.6,
+      "first_clause_ms": 123.3,
+      "first_sentence_ms": 813.1,
+      "total_ms": 1063.1,
+      "tokens_per_s": 26.5,
+      "prompt_tokens": 18,
+      "reply": "Got it, I\u2019ll leave the order with the security guard tomorrow at 5 to 6 PM. Thanks, Divya!"
+    },
+    {
+      "rep": 1,
+      "turn": 6,
+      "ttft_ms": 229.5,
+      "first_clause_ms": 307.1,
+      "first_sentence_ms": 368.3,
+      "total_ms": 627.5,
+      "tokens_per_s": 30.2,
+      "prompt_tokens": 19,
+      "reply": "You're welcome, Divya. Have a great day!"
+    },
+    {
+      "rep": 2,
+      "turn": 0,
+      "ttft_ms": 184.7,
+      "first_clause_ms": 237.7,
+      "first_sentence_ms": 1191.9,
+      "total_ms": 1952.1,
+      "tokens_per_s": 30.0,
+      "prompt_tokens": 1,
+      "reply": "Hi Divya, we have a delivery for you with 2 Haldiram potato chips, 1 Bru tea powder, and 1 Modern brown bread. The earliest slot available today is 10 to 11 AM. Would that work for you?"
+    },
+    {
+      "rep": 2,
+      "turn": 1,
+      "ttft_ms": 183.4,
+      "first_clause_ms": 527.9,
+      "first_sentence_ms": 527.9,
+      "total_ms": 1734.3,
+      "tokens_per_s": 27.1,
+      "prompt_tokens": 17,
+      "reply": "Yes, the tea powder and bread are in stock. The potato chips are currently low, only one left, so we can only deliver one. We'll need to check if we can restock more later."
+    },
+    {
+      "rep": 2,
+      "turn": 2,
+      "ttft_ms": 189.6,
+      "first_clause_ms": 241.2,
+      "first_sentence_ms": 431.4,
+      "total_ms": 1771.2,
+      "tokens_per_s": 25.9,
+      "prompt_tokens": 18,
+      "reply": "Got it, Divya. We'll deliver one Haldiram potato chip, one Bru tea powder, and one Modern brown bread during your 10 to 11 AM slot. Thank you!"
+    },
+    {
+      "rep": 2,
+      "turn": 3,
+      "ttft_ms": 75.7,
+      "first_clause_ms": 247.8,
+      "first_sentence_ms": 744.3,
+      "total_ms": 1725.2,
+      "tokens_per_s": 24.3,
+      "prompt_tokens": 19,
+      "reply": "Sorry, Divya, we don't have a slot available tomorrow after 5. The next available slot today is 10 to 11 AM. Would you like to stick with that?"
+    },
+    {
+      "rep": 2,
+      "turn": 4,
+      "ttft_ms": 83.1,
+      "first_clause_ms": 294.5,
+      "first_sentence_ms": 294.5,
+      "total_ms": 1193.1,
+      "tokens_per_s": 22.5,
+      "prompt_tokens": 16,
+      "reply": "Okay, Divya. Your order is confirmed for delivery between 10 and 11 AM today. Thank you!"
+    },
+    {
+      "rep": 2,
+      "turn": 5,
+      "ttft_ms": 194.0,
+      "first_clause_ms": 235.0,
+      "first_sentence_ms": 281.2,
+      "total_ms": 1282.4,
+      "tokens_per_s": 26.7,
+      "prompt_tokens": 18,
+      "reply": "Got it, Divya. I'll leave the order with the security guard at 48 BTM Layout 2nd Stage. Thanks!"
+    },
+    {
+      "rep": 2,
+      "turn": 6,
+      "ttft_ms": 106.3,
+      "first_clause_ms": 164.4,
+      "first_sentence_ms": 363.2,
+      "total_ms": 632.2,
+      "tokens_per_s": 22.9,
+      "prompt_tokens": 19,
+      "reply": "You're welcome, Divya. Have a great day!"
+    }
+  ]
+}
