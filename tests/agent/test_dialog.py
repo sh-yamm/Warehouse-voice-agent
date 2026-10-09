@@ -30,7 +30,7 @@ def to_schedule(dm):
 
 
 def test_greeting_and_allowed_intents(dm):
-    assert dm.greeting() == ("Hi, this is Asha calling from QuickMart about your grocery order. "
+    assert dm.greeting() == ("Hi, this is Avio calling from AvioStack about your grocery order. "
                              "Am I speaking with Priya?")
     assert dm.state == "greet" and "change_address" not in dm.allowed_intents()
     assert dm.transcript == [{"role": "assistant", "content": dm.greeting()}]

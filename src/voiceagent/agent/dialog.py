@@ -11,8 +11,8 @@ from voiceagent.domain.context import spoken_day
 from voiceagent.domain.inventory import Shortage
 from voiceagent.domain.timeparse import parse_time_window
 
-AGENT_NAME = "Asha"
-COMPANY = "QuickMart"
+AGENT_NAME = "Avio"
+COMPANY = "AvioStack"
 # Every reply opens with one of these; the TTS service pre-synthesizes them so speech starts instantly.
 ACKS = ("Sure.", "Got it.", "Okay.", "Great.", "Perfect.", "No problem.", "Sorry.", "Noted.")
 GLOBAL_INTENTS = ["add_item", "callback", "cancel", "question", "unclear"]
