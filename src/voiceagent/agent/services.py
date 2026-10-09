@@ -94,9 +94,14 @@ class KokoroTorchTTSService(TTSService):
 
 
 def make_turn_analyzer():
-    """Smart Turn v3.2 on CPU, warmed up (its first inference took 2.7 s in Phase 2)."""
+    """Smart Turn v3.2 on CPU, warmed up (its first inference took 2.7 s in Phase 2).
+
+    stop_secs caps how long a turn the model judged "incomplete" waits in silence before it is released anyway.
+    The default 3 s made a bare "Yes." take 3.7 s in Phase 3 calls.
+    """
+    from pipecat.audio.turn.smart_turn.base_smart_turn import SmartTurnParams
     from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 
-    analyzer = LocalSmartTurnAnalyzerV3(cpu_count=4)
+    analyzer = LocalSmartTurnAnalyzerV3(cpu_count=4, params=SmartTurnParams(stop_secs=1.2))
     analyzer._predict_endpoint(np.zeros(16000 * 2, dtype=np.float32))
     return analyzer

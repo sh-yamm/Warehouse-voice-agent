@@ -129,3 +129,8 @@ def test_wait_restock_releases_hold_before_restock(session, repo):
     result = session.resolve_shortage("BREAD1", "wait")
     assert result["held_slot_released"] is True
     assert session.held_slot_id is None and repo.get_active_hold(1, NOW) is None
+
+
+def test_order_summary_partial_with_none_available(session):
+    session.resolve_shortage("BREAD1", "partial")
+    assert session.order_summary()["items"][1] == "no brown bread"

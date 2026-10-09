@@ -187,7 +187,7 @@ class CallSession:
                 else:
                     items.append(f"{line.substitute_qty} {substitute} instead of {line.name}")
             elif line.resolution == "partial":
-                items.append(f"{line.reserved_qty} of {line.qty} {line.name}")
+                items.append(f"{line.reserved_qty} of {line.qty} {line.name}" if line.reserved_qty else f"no {line.name}")
             elif line.resolution == "wait":
                 items.append(f"{line.qty} {line.name}, after restock")
             elif line.reserved_qty < line.qty:

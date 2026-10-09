@@ -118,3 +118,7 @@ def test_kokoro_cache_phrases_are_synthesized_once(monkeypatch):
 def test_turn_analyzer_is_warmed_up():
     analyzer = services.make_turn_analyzer()
     assert analyzer.__class__.__name__ == "LocalSmartTurnAnalyzerV3"
+
+
+def test_turn_analyzer_caps_silence_fallback():
+    assert services.make_turn_analyzer()._params.stop_secs == 1.2
