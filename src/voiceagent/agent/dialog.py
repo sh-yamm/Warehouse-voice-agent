@@ -26,6 +26,14 @@ STATE_INTENTS = {
     "closed": ["unclear"],
 }
 _ORDINALS = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2}
+# Cancelling is the one irreversible action: a "yes" that contains any of these is treated as a refusal.
+_NEGATIONS = {"no", "not", "don't", "dont", "keep", "never", "nope", "wait", "stop"}
+# Ending the call for a callback needs a real "not now" cue; otherwise it was probably a driver instruction.
+_CALLBACK_CUES = ("later", "busy", "call back", "call me back", "callback", "another time", "driving", "meeting",
+                  "not now", "can't talk", "cannot talk", "in an hour", "in a while", "tomorrow", "tonight")
+# A "note" made only of these words means "no instructions".
+_EMPTY_NOTE_WORDS = {"nothing", "none", "no", "nope", "thanks", "thank", "you", "that's", "thats", "all", "it",
+                     "is", "fine", "ok", "okay", "nah", "not", "really"}
 
 
 def _join(items: list[str], last: str = "and") -> str:
@@ -82,7 +90,11 @@ class DialogManager:
         if intent.name == "question":
             return Reply([self._answer(intent.value or utterance), *self._ask()])
         if intent.name == "callback":
-            return self._callback(intent, utterance)
+            if any(cue in utterance.lower() for cue in _CALLBACK_CUES):
+                return self._callback(intent, utterance)
+            if "add_note" not in self.allowed_intents():
+                return Reply(["Sorry.", "I didn't catch that.", *self._ask()])
+            intent = Intent("add_note", intent.value or utterance)
         if intent.name == "add_item":
             return self._add_item(intent, utterance)
         if intent.name == "cancel" and self.state != "confirm_cancel":
@@ -311,6 +323,10 @@ class DialogManager:
         return Reply(["No problem.", "What's the correct address?"])
 
     def _add_note(self, intent: Intent, utterance: str) -> Reply:
+        words = set(intent.value.lower().replace(",", " ").replace(".", " ").split())
+        if words and words <= _EMPTY_NOTE_WORDS:
+            self.details_done, self.state = True, "confirm"
+            return Reply(["Okay.", *self._read_back()])
         if not grounded(intent.value, utterance):
             return Reply(["Sorry.", "What should I tell the driver?"])
         self.session.add_note(intent.value)
@@ -343,7 +359,8 @@ class DialogManager:
         return Reply(["No problem.", "What would you like to change, the time or the address?"])
 
     def _on_confirm_cancel(self, intent: Intent, utterance: str) -> Reply:
-        if intent.name == "confirm":
+        negated = bool(_NEGATIONS & set(utterance.lower().replace(",", " ").replace(".", " ").split()))
+        if intent.name == "confirm" and not negated:
             self.session.cancel_order()
             self.state = "closed"
             return Reply(["Okay.", "Your order is cancelled.", "Goodbye!"], end_call=True)

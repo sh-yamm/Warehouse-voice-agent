@@ -202,3 +202,39 @@ def test_transcript_records_both_sides(dm):
     say(dm, "confirm", "Yes, this is Priya.")
     assert [t["role"] for t in dm.transcript] == ["assistant", "user", "assistant"]
     assert dm.transcript[1]["content"] == "Yes, this is Priya."
+
+
+def test_negated_cancel_confirmation_never_cancels(dm, repo):
+    to_schedule(dm)
+    say(dm, "cancel", "Cancel it.")
+    reply = say(dm, "confirm", "No no, keep it.")  # intent reader misread a refusal as "confirm"
+    assert reply.sentences[:2] == ["Okay.", "I won't cancel it."]
+    assert repo.get_order(1).status == "pending_schedule"
+
+
+def to_note(dm):
+    to_schedule(dm)
+    say(dm, "give_time", "Tomorrow after 5.", "tomorrow after 5")
+    say(dm, "confirm", "Yes.")
+    say(dm, "confirm", "Yes.")
+    assert dm.state == "note"
+
+
+def test_empty_note_is_no_instructions(dm, repo):
+    to_note(dm)
+    reply = say(dm, "add_note", "Nothing, thanks.", "Nothing, thanks.")
+    assert dm.state == "confirm" and reply.sentences[0] == "Okay."
+    assert repo.get_order(1).notes == ""
+
+
+def test_callback_without_a_later_cue_is_a_driver_note(dm, repo):
+    to_note(dm)
+    say(dm, "confirm", "No instructions.")
+    reply = say(dm, "callback", "Yes. Oh and tell him to call first.", "tell him to call first")
+    assert not reply.end_call and dm.state == "confirm"
+    assert repo.get_order(1).notes == "tell him to call first"
+
+
+def test_real_callback_still_ends_call(dm):
+    to_note(dm)
+    assert say(dm, "callback", "I'm driving, call me back later.", "call me back later").end_call

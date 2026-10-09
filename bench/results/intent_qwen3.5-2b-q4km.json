@@ -1,0 +1,626 @@
+{
+  "name": "intent_qwen3.5-2b-q4km",
+  "device": "cuda (llama-server)",
+  "recorded_at": "2026-10-09T21:00:34",
+  "machine": "Shyam-PC",
+  "model": "qwen3.5-2b-q4km",
+  "latency_ms": {
+    "n": 48,
+    "p50": 324.0,
+    "p95": 434.8,
+    "mean": 332.5,
+    "min": 255.7,
+    "max": 455.3
+  },
+  "accuracy": 0.938,
+  "value_grounded_rate": 0.979,
+  "per_intent": {
+    "confirm": {
+      "n": 11,
+      "correct": 10
+    },
+    "wrong_person": {
+      "n": 2,
+      "correct": 2
+    },
+    "callback": {
+      "n": 2,
+      "correct": 2
+    },
+    "question": {
+      "n": 2,
+      "correct": 2
+    },
+    "unclear": {
+      "n": 2,
+      "correct": 2
+    },
+    "substitute": {
+      "n": 2,
+      "correct": 2
+    },
+    "send_available": {
+      "n": 2,
+      "correct": 2
+    },
+    "wait_restock": {
+      "n": 1,
+      "correct": 1
+    },
+    "add_item": {
+      "n": 2,
+      "correct": 2
+    },
+    "cancel": {
+      "n": 2,
+      "correct": 2
+    },
+    "give_time": {
+      "n": 6,
+      "correct": 6
+    },
+    "deny": {
+      "n": 4,
+      "correct": 4
+    },
+    "pick_option": {
+      "n": 2,
+      "correct": 1
+    },
+    "change_address": {
+      "n": 3,
+      "correct": 3
+    },
+    "add_note": {
+      "n": 5,
+      "correct": 4
+    }
+  },
+  "confusions": [
+    [
+      "pick_option",
+      "give_time",
+      1
+    ],
+    [
+      "confirm",
+      "add_note",
+      1
+    ],
+    [
+      "add_note",
+      "callback",
+      1
+    ]
+  ],
+  "rows": [
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "Yes, this is Priya.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes, this is Priya.",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "Yeah, speaking.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yeah, speaking.",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "No, you have the wrong number.",
+      "intent": "wrong_person",
+      "value": "",
+      "expected": "wrong_person",
+      "got": "wrong_person",
+      "got_value": "No, you have the wrong number.",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "This is her husband, she's not here.",
+      "intent": "wrong_person",
+      "value": "",
+      "expected": "wrong_person",
+      "got": "wrong_person",
+      "got_value": "This is her husband, she's not here.",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "I'm driving, can you call me back in an hour?",
+      "intent": "callback",
+      "value": "in an hour",
+      "expected": "callback",
+      "got": "callback",
+      "got_value": "I'm driving, can you call me back in an hour?",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "Who is this?",
+      "intent": "question",
+      "value": "",
+      "expected": "question",
+      "got": "question",
+      "got_value": "Who is this?",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "Mm-hmm.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Mm-hmm",
+      "value_ok": true
+    },
+    {
+      "state": "greet",
+      "agent": "Am I speaking with Priya?",
+      "customer": "Sorry, what?",
+      "intent": "unclear",
+      "value": "",
+      "expected": "unclear",
+      "got": "unclear",
+      "got_value": "",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "The whole wheat one is fine.",
+      "intent": "substitute",
+      "value": "",
+      "expected": "substitute",
+      "got": "substitute",
+      "got_value": "The whole wheat one is fine.",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "Just send the rest.",
+      "intent": "send_available",
+      "value": "",
+      "expected": "send_available",
+      "got": "send_available",
+      "got_value": "the rest",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "I'll wait for it to come back.",
+      "intent": "wait_restock",
+      "value": "",
+      "expected": "wait_restock",
+      "got": "wait_restock",
+      "got_value": "I'll wait for it to come back.",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "Skip the bread then.",
+      "intent": "send_available",
+      "value": "",
+      "expected": "send_available",
+      "got": "send_available",
+      "got_value": "Skip the bread then.",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "Yes, the substitute is okay.",
+      "intent": "substitute",
+      "value": "",
+      "expected": "substitute",
+      "got": "substitute",
+      "got_value": "the substitute is okay",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "Can you add two Amul milk as well?",
+      "intent": "add_item",
+      "value": "Amul milk",
+      "expected": "add_item",
+      "got": "add_item",
+      "got_value": "two Amul milk",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "Forget it, cancel the whole order.",
+      "intent": "cancel",
+      "value": "",
+      "expected": "cancel",
+      "got": "cancel",
+      "got_value": "cancel the whole order",
+      "value_ok": true
+    },
+    {
+      "state": "shortage",
+      "agent": "Would you like whole wheat bread instead, the rest without it or to wait until it's back tomorrow?",
+      "customer": "How much is the total?",
+      "intent": "question",
+      "value": "",
+      "expected": "question",
+      "got": "question",
+      "got_value": "How much is the total?",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "Tomorrow evening works for me.",
+      "intent": "give_time",
+      "value": "tomorrow evening",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "Tomorrow evening",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "Can you do it between 2 and 4 tomorrow?",
+      "intent": "give_time",
+      "value": "2 and 4 tomorrow",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "between 2 and 4 tomorrow",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "Any time after 6.",
+      "intent": "give_time",
+      "value": "after 6",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "Any time after 6",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "As soon as possible please.",
+      "intent": "give_time",
+      "value": "as soon as possible",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "as soon as possible",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "I can deliver tomorrow, 5 to 6 PM. Shall I book that?",
+      "customer": "Yes, that works.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes, that works.",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "I can deliver tomorrow, 5 to 6 PM. Shall I book that?",
+      "customer": "No, that's too late.",
+      "intent": "deny",
+      "value": "",
+      "expected": "deny",
+      "got": "deny",
+      "got_value": "No, that's too late.",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "I have today, 3 to 4 PM, today, 4 to 5 PM or today, 6 to 7 PM. Which works for you?",
+      "customer": "The second one.",
+      "intent": "pick_option",
+      "value": "second",
+      "expected": "pick_option",
+      "got": "pick_option",
+      "got_value": "The second one.",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "I have today, 3 to 4 PM, today, 4 to 5 PM or today, 6 to 7 PM. Which works for you?",
+      "customer": "Six to seven is good.",
+      "intent": "pick_option",
+      "value": "six to seven",
+      "expected": "pick_option",
+      "got": "give_time",
+      "got_value": "six to seven",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "Friday afternoon.",
+      "intent": "give_time",
+      "value": "Friday afternoon",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "Friday afternoon",
+      "value_ok": true
+    },
+    {
+      "state": "schedule",
+      "agent": "When would you like it delivered?",
+      "customer": "I'm busy now, call me later.",
+      "intent": "callback",
+      "value": "later",
+      "expected": "callback",
+      "got": "callback",
+      "got_value": "I'm busy now and ask the agent to phone again later.",
+      "value_ok": false
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "Yes, that's right.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes, that's right.",
+      "value_ok": true
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "No, deliver to my office at 42 Church Street.",
+      "intent": "change_address",
+      "value": "42 Church Street",
+      "expected": "change_address",
+      "got": "change_address",
+      "got_value": "my office at 42 Church Street",
+      "value_ok": true
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "No.",
+      "intent": "deny",
+      "value": "",
+      "expected": "deny",
+      "got": "deny",
+      "got_value": "No",
+      "value_ok": true
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "It's flat 304, B block, Prestige Towers, Indiranagar.",
+      "intent": "change_address",
+      "value": "Prestige Towers",
+      "expected": "change_address",
+      "got": "change_address",
+      "got_value": "It's flat 304, B block, Prestige Towers, Indiranagar.",
+      "value_ok": true
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "Yes.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes",
+      "value_ok": true
+    },
+    {
+      "state": "address",
+      "agent": "Should we deliver to 12 MG Road, Bengaluru?",
+      "customer": "Also add a dozen eggs.",
+      "intent": "add_item",
+      "value": "eggs",
+      "expected": "add_item",
+      "got": "add_item",
+      "got_value": "dozen eggs",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "Please leave it with the security guard.",
+      "intent": "add_note",
+      "value": "security guard",
+      "expected": "add_note",
+      "got": "add_note",
+      "got_value": "leave it with the security guard",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "No, that's all.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "No, that's all.",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "Call me when you reach the gate.",
+      "intent": "add_note",
+      "value": "reach the gate",
+      "expected": "add_note",
+      "got": "add_note",
+      "got_value": "Call me when you reach the gate.",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "Nothing, thanks.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "add_note",
+      "got_value": "Nothing, thanks.",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "Ring the bell twice, the dog is friendly.",
+      "intent": "add_note",
+      "value": "bell twice",
+      "expected": "add_note",
+      "got": "add_note",
+      "got_value": "Ring the bell twice, the dog is friendly.",
+      "value_ok": true
+    },
+    {
+      "state": "note",
+      "agent": "Any instructions for the driver?",
+      "customer": "Don't ring the bell, the baby is sleeping.",
+      "intent": "add_note",
+      "value": "baby is sleeping",
+      "expected": "add_note",
+      "got": "add_note",
+      "got_value": "Don't ring the bell, the baby is sleeping.",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Yes, please book it.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes, please book it.",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Go ahead.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Go ahead",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Actually, make it after 7 instead.",
+      "intent": "give_time",
+      "value": "after 7",
+      "expected": "give_time",
+      "got": "give_time",
+      "got_value": "after 7",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Wait, the address is wrong, it's 9 Brigade Road.",
+      "intent": "change_address",
+      "value": "9 Brigade Road",
+      "expected": "change_address",
+      "got": "change_address",
+      "got_value": "9 Brigade Road",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "No, something's not right.",
+      "intent": "deny",
+      "value": "",
+      "expected": "deny",
+      "got": "deny",
+      "got_value": "No, something's not right.",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Yes. Oh and tell him to call first.",
+      "intent": "add_note",
+      "value": "call first",
+      "expected": "add_note",
+      "got": "callback",
+      "got_value": "tell him to call first",
+      "value_ok": true
+    },
+    {
+      "state": "confirm",
+      "agent": "Shall I book it?",
+      "customer": "Cancel it, I don't need it anymore.",
+      "intent": "cancel",
+      "value": "",
+      "expected": "cancel",
+      "got": "cancel",
+      "got_value": "Cancel it, I don't need it anymore.",
+      "value_ok": true
+    },
+    {
+      "state": "confirm_cancel",
+      "agent": "Just to confirm, do you want to cancel the whole order?",
+      "customer": "Yes, cancel it.",
+      "intent": "confirm",
+      "value": "",
+      "expected": "confirm",
+      "got": "confirm",
+      "got_value": "Yes, cancel it.",
+      "value_ok": true
+    },
+    {
+      "state": "confirm_cancel",
+      "agent": "Just to confirm, do you want to cancel the whole order?",
+      "customer": "No no, keep it.",
+      "intent": "deny",
+      "value": "",
+      "expected": "deny",
+      "got": "deny",
+      "got_value": "keep it",
+      "value_ok": true
+    },
+    {
+      "state": "confirm_cancel",
+      "agent": "Just to confirm, do you want to cancel the whole order?",
+      "customer": "Hmm, let me think.",
+      "intent": "unclear",
+      "value": "",
+      "expected": "unclear",
+      "got": "unclear",
+      "got_value": "",
+      "value_ok": true
+    }
+  ]
+}

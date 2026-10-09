@@ -9,7 +9,7 @@ from loguru import logger
 
 INTENT_DESCRIPTIONS = {
     "confirm": "yes, agrees, that's me, that's right, that's all, go ahead",
-    "deny": "no, disagrees, that's not right",
+    "deny": "no, disagrees, that's not right, keep it as it is, don't, nothing more",
     "give_time": "names a delivery day or time",
     "pick_option": "picks one of the options the agent just listed (first, second, last, or by naming it)",
     "substitute": "accepts the suggested substitute product",
@@ -17,11 +17,11 @@ INTENT_DESCRIPTIONS = {
     "wait_restock": "wait until the missing item is back in stock",
     "add_item": "asks to add a product to the order",
     "change_address": "gives a different delivery address",
-    "add_note": "gives delivery instructions for the driver",
-    "callback": "busy now, or asks to be called back later",
+    "add_note": "gives instructions for the delivery driver, e.g. where to leave it, or to call or ring on arrival",
+    "callback": "busy right now and asks the agent to phone again later (not instructions for the driver)",
     "cancel": "wants to cancel the whole order",
     "wrong_person": "is not the person the agent asked for",
-    "question": "asks a question",
+    "question": "asks a question, e.g. who is calling, what is in the order, how much it costs",
     "unclear": "anything else, or unintelligible",
 }
 
