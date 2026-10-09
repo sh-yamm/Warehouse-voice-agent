@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 from contextlib import contextmanager
@@ -237,3 +238,48 @@ class Repository:
 
     def decrement_booked(self, slot_id: int) -> None:
         self.conn.execute("UPDATE delivery_slots SET booked = booked - 1 WHERE id = ? AND booked > 0", (slot_id,))
+
+    # ── calls ──────────────────────────────────────────────────────────────
+    def start_call(self, order_id: int, started_at: datetime) -> int:
+        cur = self.conn.execute("INSERT INTO calls (order_id, started_at) VALUES (?, ?)",
+                                (order_id, _ts(started_at)))
+        return cur.lastrowid
+
+    def add_turn_metric(self, call_id: int, kind: str, total_ms: float, breakdown: dict,
+                        recorded_at: datetime) -> None:
+        self.conn.execute(
+            "INSERT INTO turn_metrics (call_id, kind, total_ms, breakdown_json, recorded_at) VALUES (?, ?, ?, ?, ?)",
+            (call_id, kind, round(float(total_ms), 1), json.dumps(breakdown), _ts(recorded_at)),
+        )
+
+    def finish_call(self, call_id: int, ended_at: datetime, outcome: str, transcript: list[dict]) -> None:
+        self.conn.execute("UPDATE calls SET ended_at = ?, outcome = ?, transcript_json = ? WHERE id = ?",
+                          (_ts(ended_at), outcome, json.dumps(transcript), call_id))
+
+    _CALL_SELECT = ("SELECT c.id, c.order_id, cu.name AS customer, c.started_at, c.ended_at, c.outcome,"
+                    " c.transcript_json FROM calls c JOIN orders o ON o.id = c.order_id"
+                    " JOIN customers cu ON cu.id = o.customer_id")
+
+    @staticmethod
+    def _call(row: sqlite3.Row, with_transcript: bool) -> dict:
+        call = {"id": row["id"], "order_id": row["order_id"], "customer": row["customer"],
+                "started_at": _dt(row["started_at"]), "ended_at": _dt(row["ended_at"]), "outcome": row["outcome"]}
+        if with_transcript:
+            call["transcript"] = json.loads(row["transcript_json"])
+        return call
+
+    def get_call(self, call_id: int) -> dict | None:
+        row = self.conn.execute(self._CALL_SELECT + " WHERE c.id = ?", (call_id,)).fetchone()
+        return self._call(row, True) if row else None
+
+    def list_calls(self, limit: int = 20) -> list[dict]:
+        rows = self.conn.execute(self._CALL_SELECT + " ORDER BY c.id DESC LIMIT ?", (limit,)).fetchall()
+        return [self._call(r, False) for r in rows]
+
+    def call_metrics(self, call_id: int) -> list[dict]:
+        rows = self.conn.execute(
+            "SELECT kind, total_ms, breakdown_json, recorded_at FROM turn_metrics WHERE call_id = ? ORDER BY id",
+            (call_id,),
+        ).fetchall()
+        return [{"kind": r["kind"], "total_ms": r["total_ms"], "breakdown": json.loads(r["breakdown_json"]),
+                 "recorded_at": _dt(r["recorded_at"])} for r in rows]

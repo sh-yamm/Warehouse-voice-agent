@@ -59,3 +59,19 @@ CREATE TABLE IF NOT EXISTS slot_holds (
     order_id INTEGER NOT NULL UNIQUE REFERENCES orders(id),
     expires_at TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS calls (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER NOT NULL REFERENCES orders(id),
+    started_at TEXT NOT NULL,
+    ended_at TEXT,
+    outcome TEXT,
+    transcript_json TEXT NOT NULL DEFAULT '[]'
+);
+CREATE TABLE IF NOT EXISTS turn_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    call_id INTEGER NOT NULL REFERENCES calls(id),
+    kind TEXT NOT NULL,
+    total_ms REAL NOT NULL,
+    breakdown_json TEXT NOT NULL DEFAULT '{}',
+    recorded_at TEXT NOT NULL
+);
