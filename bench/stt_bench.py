@@ -23,7 +23,7 @@ class NemotronStreaming:
 
         self.name, self.device = name, "cuda"
         self.processor = AutoProcessor.from_pretrained(NEMOTRON_ID)
-        self.model = AutoModelForRNNT.from_pretrained(NEMOTRON_ID, device_map="cuda", dtype=torch.float32)
+        self.model = AutoModelForRNNT.from_pretrained(NEMOTRON_ID, dtype=torch.float32).to("cuda").eval()
         self.processor.set_num_lookahead_tokens(NEMOTRON_LOOKAHEAD[name])
         self.sr = self.processor.feature_extractor.sampling_rate
         self.streaming_latency_ms = self.processor.streaming_latency_ms

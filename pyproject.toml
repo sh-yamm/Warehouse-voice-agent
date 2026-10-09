@@ -21,6 +21,8 @@ bench = [
   "faster-whisper>=1.2",
   "sherpa-onnx>=1.12",
   "kokoro-onnx>=0.6",
+  "kokoro>=0.9.4",
+  "librosa>=0.10",
 ]
 
 [tool.setuptools.packages.find]
