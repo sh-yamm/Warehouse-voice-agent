@@ -122,3 +122,19 @@ def test_turn_analyzer_is_warmed_up():
 
 def test_turn_analyzer_caps_silence_fallback():
     assert services.make_turn_analyzer()._params.stop_secs == 1.2
+
+
+def test_whisper_prewarms_when_user_starts_speaking(monkeypatch):
+    from pipecat.frames.frames import VADUserStartedSpeakingFrame
+    from pipecat.tests.utils import run_test
+
+    monkeypatch.setattr(services.whisper_stt, "WhisperModel", FakeWhisperModel)
+
+    async def scenario():
+        stt = services.GreedyWhisperSTTService(device="cpu")
+        before = len(stt._model.calls)
+        await run_test(stt, frames_to_send=[VADUserStartedSpeakingFrame()])
+        await asyncio.sleep(0.2)  # the pre-warm decode runs in a worker thread
+        return len(stt._model.calls) - before
+
+    assert asyncio.run(scenario()) == 1

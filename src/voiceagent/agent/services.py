@@ -9,7 +9,8 @@ from collections.abc import AsyncGenerator
 import numpy as np
 from loguru import logger
 from pipecat.audio.utils import create_stream_resampler
-from pipecat.frames.frames import ErrorFrame, Frame, TTSAudioRawFrame
+from pipecat.frames.frames import ErrorFrame, Frame, TTSAudioRawFrame, VADUserStartedSpeakingFrame
+from pipecat.processors.frame_processor import FrameDirection
 from pipecat.services.settings import TTSSettings
 from pipecat.services.tts_service import TTSService
 from pipecat.services.whisper import stt as whisper_stt
@@ -41,8 +42,26 @@ class GreedyWhisperSTTService(whisper_stt.WhisperSTTService):
             return segments, info
 
         self._model.transcribe = timed_transcribe
+        self._greedy_transcribe = transcribe
+        self._prewarming = False
         # First CUDA decode is slow (kernel/cuBLAS init); pay it at load, not on the customer's first turn.
         self._model.transcribe(np.zeros(16000, dtype=np.float32), language="en")
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        # After a few idle seconds a decode takes ~400 ms instead of ~120 ms on this laptop (CPU/GPU power states;
+        # keeping the GPU busy alone did not help). A throwaway decode when the customer starts talking warms
+        # CTranslate2 up, so the real decode after they stop is fast again.
+        if isinstance(frame, VADUserStartedSpeakingFrame) and self._model is not None and not self._prewarming:
+            self._prewarming = True
+            asyncio.get_running_loop().run_in_executor(None, self._prewarm)
+        await super().process_frame(frame, direction)
+
+    def _prewarm(self) -> None:
+        try:
+            segments, _ = self._greedy_transcribe(np.zeros(8000, dtype=np.float32), language="en")
+            list(segments)
+        finally:
+            self._prewarming = False
 
 
 class KokoroTorchTTSService(TTSService):
