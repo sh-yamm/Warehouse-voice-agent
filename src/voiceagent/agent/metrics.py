@@ -71,6 +71,7 @@ class CallRecorder:
         self.repo = repo
         self.clock = clock
         self.call_id = repo.start_call(order_id, clock())
+        self._finished = False
 
     def record_breakdown(self, breakdown: LatencyBreakdown) -> None:
         kind = "greeting" if breakdown.measured_from == MeasuredFrom.CLIENT_CONNECTED else "response"
@@ -81,6 +82,10 @@ class CallRecorder:
         self.repo.add_turn_metric(self.call_id, "barge_in", elapsed_ms, {}, self.clock())
 
     def finish(self, outcome: str | None, messages: list) -> None:
+        """Close the call row once; later calls (disconnect after end_conversation) are ignored."""
+        if self._finished:
+            return
+        self._finished = True
         transcript = [{"role": m["role"], "content": m["content"]} for m in messages
                       if isinstance(m, dict) and m.get("role") in ("user", "assistant")
                       and isinstance(m.get("content"), str)]

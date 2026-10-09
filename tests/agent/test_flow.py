@@ -110,3 +110,26 @@ def test_global_cancel_and_callback_close(flow):
 def test_global_add_item_stays_in_node(flow):
     result, node = call(flow.global_functions, "add_item", product_name="nandini milk", quantity=1)
     assert result["status"] == "added" and node is None
+
+
+def test_order_node_accepts_an_early_delivery_time(flow):
+    node = flow.order_node()
+    assert "check_slot" in names(node)
+    result, next_node = call(node, "check_slot", preferred_time="tomorrow after 5")
+    assert result["status"] == "held" and next_node is None
+
+
+def test_callback_tool_says_not_for_delivery_times(flow):
+    callback = next(f for f in flow.global_functions if f.__name__ == "callback_later")
+    assert "not for delivery times" in callback.__doc__
+
+
+def test_tools_are_logged(flow):
+    from loguru import logger
+    lines = []
+    sink = logger.add(lines.append, level="INFO", format="{message}")
+    try:
+        call(flow.schedule_node(), "check_slot", preferred_time="tomorrow after 5")
+    finally:
+        logger.remove(sink)
+    assert any("check_slot" in line and "tomorrow after 5" in line and "held" in line for line in lines)

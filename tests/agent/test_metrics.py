@@ -78,3 +78,11 @@ def test_finish_without_outcome_is_abandoned(world, repo):
 def test_observers(world, repo):
     observers = CallRecorder(repo, 1, clock=lambda: NOW).observers()
     assert [type(o) for o in observers] == [UserBotLatencyObserver, BargeInObserver]
+
+
+def test_finish_is_idempotent(world, repo):
+    recorder = CallRecorder(repo, 1, clock=lambda: NOW)
+    recorder.finish("scheduled", [{"role": "user", "content": "Yes."}])
+    recorder.finish(None, [])
+    call = repo.get_call(recorder.call_id)
+    assert call["outcome"] == "scheduled" and len(call["transcript"]) == 1

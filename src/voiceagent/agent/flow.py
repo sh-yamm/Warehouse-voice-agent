@@ -51,7 +51,7 @@ class DeliveryFlow:
                 "The order is cancelled. Confirm the cancellation and say goodbye in one sentence.")
 
         async def callback_later(flow_manager: FlowManager, when: str) -> tuple[dict, NodeConfig]:
-            """Arrange a callback because the customer cannot talk now.
+            """Arrange a callback only when the customer is busy or asks to be called back; not for delivery times.
 
             Args:
                 when (str): When to call back in the customer's words, for example "tomorrow morning". Use "" if they did not say.
@@ -114,10 +114,11 @@ class DeliveryFlow:
         task = ("Tell the customer in one or two sentences what their order contains. "
                 "If an item is SHORT, explain it and offer the options: a listed substitute, sending what is "
                 "available, or waiting for the restock; then call resolve_shortage with their choice. "
-                "If nothing is short, call items_confirmed once they are happy.")
-        return self._node("present_order", task, [resolve_shortage, items_confirmed])
+                "If nothing is short, call items_confirmed once they are happy. "
+                "If they already mention a delivery time, call check_slot with their words.")
+        return self._node("present_order", task, [resolve_shortage, items_confirmed, self._check_slot_function()])
 
-    def schedule_node(self) -> NodeConfig:
+    def _check_slot_function(self):
         session = self.session
 
         async def check_slot(flow_manager: FlowManager, preferred_time: str) -> tuple[dict, None]:
@@ -127,6 +128,12 @@ class DeliveryFlow:
                 preferred_time (str): The customer's own words, for example "tomorrow after 5 PM".
             """
             return session.check_slot(preferred_time), None
+
+        return check_slot
+
+    def schedule_node(self) -> NodeConfig:
+        session = self.session
+        check_slot = self._check_slot_function()
 
         async def choose_slot(flow_manager: FlowManager, slot_id: int) -> tuple[dict, None]:
             """Hold an alternative slot the customer picked.

@@ -14,6 +14,7 @@ from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnal
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.flows import FlowManager
+from pipecat.observers.loggers.transcription_log_observer import TranscriptionLogObserver
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker, ProcessorUnusablePolicy
 from pipecat.processors.aggregators.llm_context import LLMContext
@@ -79,7 +80,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         pipeline,
         params=PipelineParams(enable_metrics=True, enable_usage_metrics=True),
         idle_timeout_secs=runner_args.pipeline_idle_timeout_secs,
-        observers=recorder.observers(),
+        observers=[*recorder.observers(), TranscriptionLogObserver()],
         processor_unusable_policy=ProcessorUnusablePolicy.END,
     )
     runner = WorkerRunner(handle_sigint=runner_args.handle_sigint)
@@ -98,8 +99,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         logger.info(f"Call {recorder.call_id} ended: {session.outcome or 'abandoned'}")
         await runner.cancel()
 
-    await runner.run()
-    repo.close()
+    try:
+        await runner.run()
+    finally:
+        # end_conversation stops the pipeline without a client disconnect; close the call row either way.
+        recorder.finish(session.outcome, context.get_messages())
+        repo.close()
 
 
 async def bot(runner_args: RunnerArguments):

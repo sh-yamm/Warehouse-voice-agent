@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import functools
 from collections.abc import Callable
 from datetime import datetime, timedelta
+
+from loguru import logger
 
 from voiceagent.db.repository import Repository
 from voiceagent.domain.context import CallContext, build_call_context, spoken_day, spoken_slot, spoken_time
@@ -11,6 +14,18 @@ from voiceagent.domain.scheduling import SchedulingService, SlotOption
 from voiceagent.domain.timeparse import parse_time_window
 
 SHORTAGE_CHOICES = ("substitute", "partial", "wait")
+
+
+def _logged(method):
+    """Log every tool call with its arguments and result (the call's audit trail)."""
+
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):
+        result = method(self, *args, **kwargs)
+        logger.info(f"tool {method.__name__} args={list(args)} kwargs={kwargs} -> {result}")
+        return result
+
+    return wrapper
 
 
 class CallSession:
@@ -39,6 +54,7 @@ class CallSession:
         return [self._option(o) for o in options]
 
     # ── scheduling ─────────────────────────────────────────────────────────
+    @_logged
     def check_slot(self, preferred_time: str) -> dict:
         now = self.clock()
         window = parse_time_window(preferred_time, now)
@@ -53,6 +69,7 @@ class CallSession:
             status = "full"
         return {"status": status, "alternatives": self._alternatives(check.alternatives)}
 
+    @_logged
     def choose_slot(self, slot_id: int) -> dict:
         now = self.clock()
         slot = self.repo.get_slot(slot_id)
@@ -62,6 +79,7 @@ class CallSession:
         self.held_slot_id = slot_id
         return {"status": "held", "slot_id": slot_id, "slot": spoken_slot(slot, now)}
 
+    @_logged
     def confirm_booking(self) -> dict:
         slot = self.scheduling.confirm_booking(self.order_id, self.clock())
         if slot is None:
@@ -71,6 +89,7 @@ class CallSession:
         return {"status": "booked", "slot": spoken_slot(slot, self.clock())}
 
     # ── items ──────────────────────────────────────────────────────────────
+    @_logged
     def add_item(self, product_name: str, quantity) -> dict:
         try:
             qty = int(quantity)
@@ -88,6 +107,7 @@ class CallSession:
         return {"status": result.status, "item": best.spoken_name, "quantity": qty,
                 "available": result.available, "unit_price": best.unit_price}
 
+    @_logged
     def resolve_shortage(self, sku: str, choice: str, substitute_sku: str = "") -> dict:
         now = self.clock()
         deliver_after = None
@@ -109,6 +129,7 @@ class CallSession:
         return result
 
     # ── order details ──────────────────────────────────────────────────────
+    @_logged
     def update_address(self, address: str) -> dict:
         try:
             self.orders.update_address(self.order_id, address)
@@ -116,6 +137,7 @@ class CallSession:
             return {"status": "error", "message": str(exc)}
         return {"status": "updated", "address": self.repo.get_order(self.order_id).address}
 
+    @_logged
     def add_note(self, note: str) -> dict:
         try:
             self.orders.add_note(self.order_id, note)
@@ -123,6 +145,7 @@ class CallSession:
             return {"status": "error", "message": str(exc)}
         return {"status": "saved"}
 
+    @_logged
     def cancel_order(self) -> dict:
         ok = self.orders.cancel_order(self.order_id)
         if ok:
@@ -130,6 +153,7 @@ class CallSession:
             self.held_slot_id = None
         return {"status": "cancelled" if ok else "failed"}
 
+    @_logged
     def schedule_callback(self, when: str) -> dict:
         now = self.clock()
         window = parse_time_window(when, now) if when and when.strip() else None
@@ -138,6 +162,7 @@ class CallSession:
         self.outcome = "callback"
         return {"status": "scheduled", "callback_at": f"{spoken_day(at.date(), now)} {spoken_time(at)}"}
 
+    @_logged
     def wrong_person(self) -> dict:
         self.orders.mark_wrong_person(self.order_id)
         self.outcome = "wrong_person"
