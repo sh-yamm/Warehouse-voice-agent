@@ -1,4 +1,7 @@
-"""The only place STT, TTS and LLM services are constructed (swap models here)."""
+"""The only place STT, TTS and turn services are constructed (swap models here).
+
+July-2025 stack: Pipecat 0.0.77 TTS API (run_tts(text), explicit TTSStarted/Stopped frames) and Smart Turn v2.
+"""
 from __future__ import annotations
 
 import asyncio
@@ -6,17 +9,20 @@ import functools
 import time
 from collections.abc import AsyncGenerator
 
+from pathlib import Path
+
 import numpy as np
 from loguru import logger
 from pipecat.audio.utils import create_stream_resampler
-from pipecat.frames.frames import ErrorFrame, Frame, TTSAudioRawFrame, VADUserStartedSpeakingFrame
+from pipecat.frames.frames import (ErrorFrame, Frame, TTSAudioRawFrame, TTSStartedFrame, TTSStoppedFrame,
+                                   VADUserStartedSpeakingFrame)
 from pipecat.processors.frame_processor import FrameDirection
-from pipecat.services.settings import TTSSettings
 from pipecat.services.tts_service import TTSService
 from pipecat.services.whisper import stt as whisper_stt
-from pipecat.transcriptions.language import Language
 
 KOKORO_SAMPLE_RATE = 24000
+# Smart Turn v2 snapshot as of 2025-07-25 (scripts/download_models_jul2025.py); the hub repo changed afterwards.
+SMART_TURN_V2_DIR = Path(__file__).resolve().parents[3] / "models" / "jul2025" / "smart-turn-v2"
 
 
 def float_to_pcm16(samples: np.ndarray) -> bytes:
@@ -69,8 +75,7 @@ class KokoroTorchTTSService(TTSService):
 
     def __init__(self, *, voice: str = "af_heart", device: str = "cuda", cache_phrases: tuple[str, ...] = (),
                  **kwargs):
-        super().__init__(push_start_frame=True, push_stop_frames=True,
-                         settings=TTSSettings(model="kokoro-82m", voice=voice, language=Language.EN), **kwargs)
+        super().__init__(**kwargs)
         from kokoro import KModel, KPipeline
 
         self._voice = voice
@@ -95,32 +100,35 @@ class KokoroTorchTTSService(TTSService):
         cached = self._cache.get(text.strip())
         return cached if cached is not None else self._synthesize(text)
 
-    async def run_tts(self, text: str, context_id: str) -> AsyncGenerator[Frame, None]:
+    async def run_tts(self, text: str) -> AsyncGenerator[Frame, None]:
         try:
+            await self.start_ttfb_metrics()
             await self.start_tts_usage_metrics(text)
+            yield TTSStartedFrame()
             cached = self._cache.get(text.strip())
             samples = cached if cached is not None else await asyncio.to_thread(self._synthesize, text)
             await self.stop_ttfb_metrics()
             if samples.size:
                 audio = await self._resampler.resample(float_to_pcm16(samples), KOKORO_SAMPLE_RATE, self.sample_rate)
-                yield TTSAudioRawFrame(audio=audio, sample_rate=self.sample_rate, num_channels=1,
-                                       context_id=context_id)
+                yield TTSAudioRawFrame(audio, self.sample_rate, 1)
         except Exception as exc:
             logger.exception("Kokoro synthesis failed")
             yield ErrorFrame(error=f"Kokoro synthesis failed: {exc}")
         finally:
             await self.stop_ttfb_metrics()
+            yield TTSStoppedFrame()
 
 
-def make_turn_analyzer():
-    """Smart Turn v3.2 on CPU, warmed up (its first inference took 2.7 s in Phase 2).
+async def make_turn_analyzer():
+    """Smart Turn v2 (2025-07-25 snapshot), warmed up so its first real inference is fast.
 
-    stop_secs caps how long a turn the model judged "incomplete" waits in silence before it is released anyway.
-    The default 3 s made a bare "Yes." take 3.7 s in Phase 3 calls.
+    stop_secs caps how long a turn the model judged "incomplete" waits in silence before it is released anyway
+    (3 s default made a bare "Yes." take 3.7 s on the main branch).
     """
     from pipecat.audio.turn.smart_turn.base_smart_turn import SmartTurnParams
-    from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
+    from pipecat.audio.turn.smart_turn.local_smart_turn_v2 import LocalSmartTurnAnalyzerV2
 
-    analyzer = LocalSmartTurnAnalyzerV3(cpu_count=4, params=SmartTurnParams(stop_secs=1.2))
-    analyzer._predict_endpoint(np.zeros(16000 * 2, dtype=np.float32))
+    analyzer = LocalSmartTurnAnalyzerV2(smart_turn_model_path=str(SMART_TURN_V2_DIR),
+                                        params=SmartTurnParams(stop_secs=1.2))
+    await analyzer._predict_endpoint(np.zeros(16000 * 2, dtype=np.float32))
     return analyzer

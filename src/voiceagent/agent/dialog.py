@@ -235,6 +235,11 @@ class DialogManager:
             self.state = "schedule"
             return Reply(["Okay.", *self._ask()])
         current = shortages[0]
+        words = set(utterance.lower().replace(",", " ").replace(".", " ").split())
+        if intent.name == "substitute" and words & {"skip", "without", "drop", "remove", "leave"}:
+            intent = Intent("send_available")  # "skip the bread" was misread as accepting the substitute
+        elif intent.name == "substitute" and words & _NEGATIONS:
+            return Reply(["Sorry.", *self._shortage_question(current)])
         if intent.name == "substitute" and self.substitute:
             result = self.session.resolve_shortage(current.sku, "substitute", self.substitute["sku"])
         elif intent.name == "send_available":

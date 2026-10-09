@@ -2,7 +2,7 @@
 # Download the llama.cpp Windows CUDA 12.4 build into tools/llama.cpp
 set -euo pipefail
 BUILD="${1:-b11514}"
-DEST="$(cd "$(dirname "$0")/.." && pwd)/tools/llama.cpp"
+DEST="$(cd "$(dirname "$0")/.." && pwd)/tools/llama.cpp-$BUILD"
 mkdir -p "$DEST"
 cd "$DEST"
 BASE="https://github.com/ggml-org/llama.cpp/releases/download/$BUILD"

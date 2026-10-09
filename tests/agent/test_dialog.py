@@ -323,3 +323,18 @@ def test_negated_yes_does_not_save_address(dm, repo):
     say(dm, "change_address", "It's 42 Church Street, Bengaluru.", "42 Church Street, Bengaluru")
     say(dm, "confirm", "No, not that.")
     assert repo.get_order(1).address == "12 MG Road, Bengaluru"
+
+
+def test_substitute_is_never_applied_when_customer_says_skip(dm, repo):
+    say(dm, "confirm", "Yes, this is Priya.")
+    reply = say(dm, "substitute", "Skip the bread then.", "bread")  # intent reader misread a refusal
+    line = next(l for l in repo.get_order_lines(1) if l.sku == "BREAD1")
+    assert line.resolution == "partial" and line.substitute_sku is None
+    assert reply.sentences[0] == "Got it."
+
+
+def test_negated_substitute_asks_again(dm, repo):
+    say(dm, "confirm", "Yes, this is Priya.")
+    reply = say(dm, "substitute", "No, not the whole wheat one.", "whole wheat")
+    assert next(l for l in repo.get_order_lines(1) if l.sku == "BREAD1").resolution is None
+    assert reply.sentences[0] == "Sorry."

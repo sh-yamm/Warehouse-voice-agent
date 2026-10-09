@@ -1,8 +1,10 @@
-from pipecat.observers.user_bot_latency_observer import (
-    LatencyBreakdown, LatencyContribution, LatencyOwnerKind, MeasuredFrom, TTFBBreakdownMetrics,
-    UserBotLatencyObserver)
+import asyncio
+from types import SimpleNamespace
 
-from voiceagent.agent.metrics import BargeInObserver, BargeInTimer, CallRecorder
+from pipecat.frames.frames import BotStartedSpeakingFrame, MetricsFrame, VADUserStoppedSpeakingFrame
+from pipecat.metrics.metrics import TTFBMetricsData
+
+from voiceagent.agent.metrics import BargeInObserver, BargeInTimer, CallRecorder, ResponseLatencyObserver
 
 from conftest import NOW
 
@@ -28,30 +30,59 @@ def test_barge_in_timer_measures_interruptions_only():
     assert round(timer.bot_stopped(), 1) == 150.0
 
 
-def breakdown(measured_from=MeasuredFrom.USER_SILENCE):
-    return LatencyBreakdown(
-        contributions=[
-            LatencyContribution(key="vad", label="endpointing wait", owner="config: VAD stop_secs",
-                                owner_kind=LatencyOwnerKind.SETTING, start_time=0.0, duration_secs=0.2),
-            LatencyContribution(key="llm", label="LLM inference", owner="OpenAILLMService#0",
-                                owner_kind=LatencyOwnerKind.SERVICE, start_time=0.2, duration_secs=0.55),
-        ],
-        ttfb=[TTFBBreakdownMetrics(processor="OpenAILLMService#0", start_time=0.2, duration_secs=0.3)],
-        measured_from=measured_from, total_secs=0.75, user_turn_secs=0.26)
+def push(observer, frame):
+    asyncio.run(observer.on_push_frame(SimpleNamespace(frame=frame)))
 
 
-def test_record_breakdown(world, repo):
+def test_response_latency_adds_vad_wait_and_collects_ttfb():
+    clock, seen = FakeClock(), []
+
+    async def on_response(total_ms, breakdown):
+        seen.append((total_ms, breakdown))
+
+    observer = ResponseLatencyObserver(on_response=on_response, vad_stop_secs=0.2, now=clock)
+    stop = VADUserStoppedSpeakingFrame()
+    push(observer, stop)
+    clock.t = 0.1
+    push(observer, stop)  # the same frame seen again on the next hop must not restart the clock
+    push(observer, MetricsFrame(data=[TTFBMetricsData(processor="GreedyWhisperSTTService#0", value=0.15)]))
+    clock.t = 0.5
+    started = BotStartedSpeakingFrame()
+    push(observer, started)
+    push(observer, started)
+    assert len(seen) == 1
+    total, breakdown = seen[0]
+    assert total == 700.0
+    assert breakdown["contributions"] == [["endpointing_wait", "silence wait (VAD)", 200.0],
+                                          ["after_silence", "turn detection + STT + intent + first audio", 500.0]]
+    assert breakdown["ttfb"] == [["GreedyWhisperSTTService#0", 150.0]]
+
+
+def test_first_speech_after_connect_is_the_greeting():
+    clock, greetings = FakeClock(), []
+
+    async def on_greeting(ms):
+        greetings.append(ms)
+
+    async def ignore(*args):
+        pass
+
+    observer = ResponseLatencyObserver(on_response=ignore, on_greeting=on_greeting, now=clock)
+    observer.mark_connected()
+    clock.t = 0.04
+    push(observer, BotStartedSpeakingFrame())
+    push(observer, BotStartedSpeakingFrame())
+    assert [round(g) for g in greetings] == [40]
+
+
+def test_record_response_and_greeting(world, repo):
     recorder = CallRecorder(repo, 1, clock=lambda: NOW)
-    recorder.record_breakdown(breakdown())
-    recorder.record_breakdown(breakdown(MeasuredFrom.CLIENT_CONNECTED))
+    recorder.record_response(700.0, {"contributions": [["endpointing_wait", "silence wait (VAD)", 200.0]]})
+    recorder.record_greeting(40.0)
     recorder.record_barge_in(142.0)
     metrics = repo.call_metrics(recorder.call_id)
     assert [m["kind"] for m in metrics] == ["response", "greeting", "barge_in"]
-    assert metrics[0]["total_ms"] == 750.0
-    assert metrics[0]["breakdown"]["contributions"] == [["vad", "endpointing wait", 200.0],
-                                                       ["llm", "LLM inference", 550.0]]
-    assert metrics[0]["breakdown"]["ttfb"] == [["OpenAILLMService#0", 300.0]]
-    assert metrics[0]["breakdown"]["user_turn_ms"] == 260.0
+    assert metrics[0]["total_ms"] == 700.0 and metrics[0]["breakdown"]["contributions"][0][2] == 200.0
 
 
 def test_finish_keeps_spoken_turns_only(world, repo):
@@ -77,7 +108,7 @@ def test_finish_without_outcome_is_abandoned(world, repo):
 
 def test_observers(world, repo):
     observers = CallRecorder(repo, 1, clock=lambda: NOW).observers()
-    assert [type(o) for o in observers] == [UserBotLatencyObserver, BargeInObserver]
+    assert [type(o) for o in observers] == [ResponseLatencyObserver, BargeInObserver]
 
 
 def test_finish_is_idempotent(world, repo):

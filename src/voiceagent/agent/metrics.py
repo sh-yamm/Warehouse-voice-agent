@@ -1,13 +1,20 @@
-"""Per-turn latency, barge-in latency and call outcome, persisted to SQLite."""
+"""Per-turn latency, barge-in latency and call outcome, persisted to SQLite.
+
+July-2025 stack: Pipecat 0.0.77 has no latency observer with a per-part breakdown (that arrived in 1.x), so
+ResponseLatencyObserver measures "VAD heard silence" -> "bot started speaking" itself, adds the VAD silence it
+waited, and keeps the TTFB metrics services report in between. Observers see each frame once per hop, so frames
+are de-duplicated by id.
+"""
 from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
 from datetime import datetime
 
-from pipecat.frames.frames import BotStartedSpeakingFrame, BotStoppedSpeakingFrame, VADUserStartedSpeakingFrame
+from pipecat.frames.frames import (BotStartedSpeakingFrame, BotStoppedSpeakingFrame, MetricsFrame,
+                                   VADUserStartedSpeakingFrame, VADUserStoppedSpeakingFrame)
+from pipecat.metrics.metrics import TTFBMetricsData
 from pipecat.observers.base_observer import BaseObserver, FramePushed
-from pipecat.observers.user_bot_latency_observer import LatencyBreakdown, MeasuredFrom, UserBotLatencyObserver
 
 from voiceagent.db.repository import Repository
 
@@ -39,7 +46,7 @@ class BargeInTimer:
 
 class BargeInObserver(BaseObserver):
     def __init__(self, on_barge_in: Callable[[float], Awaitable[None]], **kwargs):
-        super().__init__(observe_every_push=False, **kwargs)
+        super().__init__(**kwargs)
         self._timer = BargeInTimer()
         self._on_barge_in = on_barge_in
 
@@ -55,13 +62,47 @@ class BargeInObserver(BaseObserver):
                 await self._on_barge_in(elapsed_ms)
 
 
-def breakdown_to_dict(breakdown: LatencyBreakdown) -> dict:
-    ms = lambda secs: round(secs * 1000, 1)
-    return {
-        "contributions": [[c.key, c.label, ms(c.duration_secs)] for c in breakdown.contributions],
-        "ttfb": [[t.processor, ms(t.duration_secs)] for t in breakdown.ttfb],
-        "user_turn_ms": ms(breakdown.user_turn_secs) if breakdown.user_turn_secs is not None else None,
-    }
+class ResponseLatencyObserver(BaseObserver):
+    def __init__(self, on_response: Callable[[float, dict], Awaitable[None]],
+                 on_greeting: Callable[[float], Awaitable[None]] | None = None, vad_stop_secs: float = 0.2,
+                 now: Callable[[], float] = time.perf_counter, **kwargs):
+        super().__init__(**kwargs)
+        self._on_response, self._on_greeting = on_response, on_greeting
+        self._vad_ms = vad_stop_secs * 1000
+        self._now = now
+        self._stopped_at: float | None = None
+        self._last_stop_id = None
+        self._seen_metrics: set = set()
+        self._ttfb: list[list] = []
+        self._connected_at: float | None = None
+
+    def mark_connected(self) -> None:
+        self._connected_at = self._now()
+
+    async def on_push_frame(self, data: FramePushed):
+        frame = data.frame
+        if isinstance(frame, VADUserStoppedSpeakingFrame):
+            if frame.id != self._last_stop_id:
+                self._last_stop_id, self._stopped_at, self._ttfb = frame.id, self._now(), []
+        elif isinstance(frame, MetricsFrame) and self._stopped_at is not None and frame.id not in self._seen_metrics:
+            self._seen_metrics.add(frame.id)
+            for item in frame.data:
+                if isinstance(item, TTFBMetricsData) and item.value > 0:
+                    self._ttfb.append([item.processor, round(item.value * 1000, 1)])
+        elif isinstance(frame, BotStartedSpeakingFrame):
+            if self._connected_at is not None:
+                greeting_ms, self._connected_at = (self._now() - self._connected_at) * 1000, None
+                if self._on_greeting:
+                    await self._on_greeting(greeting_ms)
+            if self._stopped_at is not None:
+                after = round((self._now() - self._stopped_at) * 1000, 1)
+                self._stopped_at = None
+                breakdown = {
+                    "contributions": [["endpointing_wait", "silence wait (VAD)", round(self._vad_ms, 1)],
+                                      ["after_silence", "turn detection + STT + intent + first audio", after]],
+                    "ttfb": self._ttfb,
+                }
+                await self._on_response(round(self._vad_ms + after, 1), breakdown)
 
 
 class CallRecorder:
@@ -72,17 +113,19 @@ class CallRecorder:
         self.clock = clock
         self.call_id = repo.start_call(order_id, clock())
         self._finished = False
+        self.latency: ResponseLatencyObserver | None = None
 
-    def record_breakdown(self, breakdown: LatencyBreakdown) -> None:
-        kind = "greeting" if breakdown.measured_from == MeasuredFrom.CLIENT_CONNECTED else "response"
-        self.repo.add_turn_metric(self.call_id, kind, breakdown.total_secs * 1000, breakdown_to_dict(breakdown),
-                                  self.clock())
+    def record_response(self, total_ms: float, breakdown: dict) -> None:
+        self.repo.add_turn_metric(self.call_id, "response", total_ms, breakdown, self.clock())
+
+    def record_greeting(self, elapsed_ms: float) -> None:
+        self.repo.add_turn_metric(self.call_id, "greeting", elapsed_ms, {}, self.clock())
 
     def record_barge_in(self, elapsed_ms: float) -> None:
         self.repo.add_turn_metric(self.call_id, "barge_in", elapsed_ms, {}, self.clock())
 
     def finish(self, outcome: str | None, messages: list) -> None:
-        """Close the call row once; later calls (disconnect after end_conversation) are ignored."""
+        """Close the call row once; later calls (disconnect after the call ended itself) are ignored."""
         if self._finished:
             return
         self._finished = True
@@ -92,13 +135,14 @@ class CallRecorder:
         self.repo.finish_call(self.call_id, self.clock(), outcome or "abandoned", transcript)
 
     def observers(self) -> list[BaseObserver]:
-        latency = UserBotLatencyObserver()
+        async def on_response(total_ms: float, breakdown: dict):
+            self.record_response(total_ms, breakdown)
 
-        @latency.event_handler("on_latency_breakdown")
-        async def _on_breakdown(observer, breakdown):
-            self.record_breakdown(breakdown)
+        async def on_greeting(elapsed_ms: float):
+            self.record_greeting(elapsed_ms)
 
-        async def _on_barge_in(elapsed_ms: float):
+        async def on_barge_in(elapsed_ms: float):
             self.record_barge_in(elapsed_ms)
 
-        return [latency, BargeInObserver(_on_barge_in)]
+        self.latency = ResponseLatencyObserver(on_response=on_response, on_greeting=on_greeting)
+        return [self.latency, BargeInObserver(on_barge_in)]

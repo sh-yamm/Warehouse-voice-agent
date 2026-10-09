@@ -20,7 +20,7 @@ class FakeWhisperModel:
 
 
 def test_greedy_whisper_forces_greedy_decoding(monkeypatch):
-    monkeypatch.setattr(services.whisper_stt, "WhisperModel", FakeWhisperModel)
+    monkeypatch.setattr("faster_whisper.WhisperModel", FakeWhisperModel)  # 0.0.77 imports it inside _load()
 
     async def build():
         return services.GreedyWhisperSTTService(device="cpu")
@@ -32,7 +32,7 @@ def test_greedy_whisper_forces_greedy_decoding(monkeypatch):
 
 
 def test_greedy_whisper_warms_up_on_load(monkeypatch):
-    monkeypatch.setattr(services.whisper_stt, "WhisperModel", FakeWhisperModel)
+    monkeypatch.setattr("faster_whisper.WhisperModel", FakeWhisperModel)  # 0.0.77 imports it inside _load()
 
     async def build():
         return services.GreedyWhisperSTTService(device="cpu")
@@ -116,19 +116,19 @@ def test_kokoro_cache_phrases_are_synthesized_once(monkeypatch):
 
 
 def test_turn_analyzer_is_warmed_up():
-    analyzer = services.make_turn_analyzer()
-    assert analyzer.__class__.__name__ == "LocalSmartTurnAnalyzerV3"
+    analyzer = asyncio.run(services.make_turn_analyzer())
+    assert analyzer.__class__.__name__ == "LocalSmartTurnAnalyzerV2"
 
 
 def test_turn_analyzer_caps_silence_fallback():
-    assert services.make_turn_analyzer()._params.stop_secs == 1.2
+    assert asyncio.run(services.make_turn_analyzer())._params.stop_secs == 1.2
 
 
 def test_whisper_prewarms_when_user_starts_speaking(monkeypatch):
     from pipecat.frames.frames import VADUserStartedSpeakingFrame
     from pipecat.tests.utils import run_test
 
-    monkeypatch.setattr(services.whisper_stt, "WhisperModel", FakeWhisperModel)
+    monkeypatch.setattr("faster_whisper.WhisperModel", FakeWhisperModel)  # 0.0.77 imports it inside _load()
 
     async def scenario():
         stt = services.GreedyWhisperSTTService(device="cpu")

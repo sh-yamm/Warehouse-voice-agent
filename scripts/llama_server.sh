@@ -4,7 +4,7 @@
 # (its stock template rejects the per-node system messages Pipecat Flows sends); it is used by default for them.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SERVER="$(find "$ROOT/tools/llama.cpp" -name llama-server.exe | head -1)"
+SERVER="$(find "$ROOT/tools/${LLAMA_DIR:-llama.cpp-b6050}" -name llama-server.exe | head -1)"
 TEMPLATE="${2:-}"
 if [ -z "$TEMPLATE" ] && [[ "$(basename "$1")" == Qwen3.5-* ]]; then
   TEMPLATE="$ROOT/scripts/chat_templates/qwen3.5-multi-system.jinja"

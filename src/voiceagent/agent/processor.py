@@ -1,13 +1,17 @@
-"""Sits where the LLM service would: one intent read per customer turn, then a deterministic spoken reply."""
+"""Sits where the LLM service would: one intent read per customer turn, then a deterministic spoken reply.
+
+July-2025 stack: Pipecat 0.0.77 names (StartInterruptionFrame, OpenAILLMContext/OpenAILLMContextFrame).
+"""
 from __future__ import annotations
 
 import asyncio
 
 from loguru import logger
-from pipecat.frames.frames import (EndTaskFrame, Frame, InterruptionFrame, LLMContextFrame, TTSSpeakFrame,
+from pipecat.frames.frames import (EndTaskFrame, Frame, StartInterruptionFrame, TTSSpeakFrame,
                                    UserStartedSpeakingFrame, UserStoppedSpeakingFrame, VADUserStartedSpeakingFrame,
                                    VADUserStoppedSpeakingFrame)
-from pipecat.processors.aggregators.llm_context import LLMContext
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext as LLMContext
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContextFrame as LLMContextFrame
 from pipecat.processors.frame_processor import FrameDirection, FrameProcessor
 
 from voiceagent.agent.dialog import DialogManager
@@ -58,7 +62,7 @@ class DialogProcessor(FrameProcessor):
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
-        if isinstance(frame, InterruptionFrame):
+        if isinstance(frame, StartInterruptionFrame):
             self._on_interruption()
             await self.push_frame(frame, direction)
         elif isinstance(frame, (VADUserStartedSpeakingFrame, UserStartedSpeakingFrame)):

@@ -1,9 +1,37 @@
 import asyncio
 
 import pytest
-from pipecat.frames.frames import EndTaskFrame, LLMContextFrame, TTSSpeakFrame
-from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.tests.utils import SleepFrame, run_test
+from pipecat.frames.frames import EndTaskFrame, TTSSpeakFrame
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext as LLMContext
+from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContextFrame as LLMContextFrame
+from pipecat.frames.frames import EndFrame
+from pipecat.pipeline.pipeline import Pipeline
+from pipecat.pipeline.runner import PipelineRunner
+from pipecat.pipeline.task import PipelineParams, PipelineTask
+from pipecat.processors.frame_processor import FrameDirection
+from pipecat.tests.utils import QueuedFrameProcessor, SleepFrame
+
+
+async def run_test(processor, *, frames_to_send):
+    """Like pipecat.tests.utils.run_test, but returns every frame (0.0.77's version only returns frames when given
+    an exact expected list)."""
+    down, up = asyncio.Queue(), asyncio.Queue()
+    source = QueuedFrameProcessor(queue=up, queue_direction=FrameDirection.UPSTREAM, ignore_start=True)
+    sink = QueuedFrameProcessor(queue=down, queue_direction=FrameDirection.DOWNSTREAM, ignore_start=True)
+    task = PipelineTask(Pipeline([source, processor, sink]), params=PipelineParams(), cancel_on_idle_timeout=False)
+
+    async def push():
+        await asyncio.sleep(0.01)
+        for frame in frames_to_send:
+            if isinstance(frame, SleepFrame):
+                await asyncio.sleep(frame.sleep)
+            else:
+                await task.queue_frame(frame)
+        await task.queue_frame(EndFrame())
+
+    await asyncio.gather(PipelineRunner().run(task), push())
+    drain = lambda q: [q.get_nowait() for _ in range(q.qsize())]
+    return drain(down), drain(up)
 
 from voiceagent.agent.dialog import DialogManager
 from voiceagent.agent.intent import Intent

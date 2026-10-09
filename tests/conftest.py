@@ -64,3 +64,14 @@ def build_world(repo, now):
             slots[(day, hour)] = slot_id
             slot_id += 1
     return {"slots": slots}
+
+
+@pytest.fixture(autouse=True)
+def _no_sigint_handlers(monkeypatch):
+    """Pipecat 0.0.77's PipelineRunner installs SIGINT handlers, which Windows event loops don't support."""
+    try:
+        from pipecat.pipeline.runner import PipelineRunner
+    except ImportError:
+        return
+    if hasattr(PipelineRunner, "_setup_sigint"):
+        monkeypatch.setattr(PipelineRunner, "_setup_sigint", lambda self: None)
