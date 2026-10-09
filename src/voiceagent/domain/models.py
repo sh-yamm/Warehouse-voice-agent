@@ -5,6 +5,7 @@ from datetime import datetime
 
 DELIVERY_DAY_START_HOUR = 8
 DELIVERY_DAY_END_HOUR = 21
+OPEN_ORDER_STATUSES = frozenset({"pending_schedule", "callback"})
 
 
 @dataclass(frozen=True)
@@ -56,3 +57,8 @@ class Order:
     notes: str
     slot_id: int | None
     callback_at: datetime | None
+
+    @property
+    def is_open(self) -> bool:
+        """Open orders can still be changed or scheduled; scheduled and cancelled ones cannot."""
+        return self.status in OPEN_ORDER_STATUSES

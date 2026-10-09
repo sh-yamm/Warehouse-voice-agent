@@ -87,3 +87,14 @@ def test_wait_restock_sets_earliest_delivery(inv):
 def test_wait_restock_on_line_that_is_not_short_returns_none(inv):
     assert inv.wait_restock(1, "MILK1") is None
     assert inv.earliest_delivery(1) is None
+
+
+def test_closed_order_rejects_inventory_changes(inv, repo):
+    from voiceagent.domain.orders import OrderService
+    OrderService(repo).cancel_order(1)
+    with pytest.raises(ValueError):
+        inv.add_item(1, "MILK2", 2)
+    assert inv.apply_substitution(1, "MILK1", "MILK2") is False
+    assert inv.set_partial(1, "BREAD1") is False
+    assert inv.wait_restock(1, "BREAD1") is None
+    assert repo.available_stock(1, "MILK2") == 5

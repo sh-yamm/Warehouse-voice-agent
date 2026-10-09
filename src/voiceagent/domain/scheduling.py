@@ -65,7 +65,7 @@ class SchedulingService:
 
     def hold_slot(self, order_id: int, slot_id: int, now: datetime) -> bool:
         order, slot = self.repo.get_order(order_id), self.repo.get_slot(slot_id)
-        if order is None or slot is None or slot.warehouse_id != order.warehouse_id:
+        if order is None or slot is None or slot.warehouse_id != order.warehouse_id or not order.is_open:
             return False
         with self.repo.transaction():
             if slot.start < self._earliest(order_id, now) or slot.end <= now:
@@ -79,7 +79,7 @@ class SchedulingService:
         with self.repo.transaction():
             slot_id = self.repo.get_active_hold(order_id, now)
             order = self.repo.get_order(order_id)
-            if slot_id is None or order is None or order.status not in ("pending_schedule", "callback"):
+            if slot_id is None or order is None or not order.is_open:
                 return None
             self.repo.increment_booked(slot_id)
             self.repo.delete_hold(order_id)

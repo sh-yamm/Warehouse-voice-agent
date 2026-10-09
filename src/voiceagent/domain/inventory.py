@@ -102,6 +102,8 @@ class InventoryService:
         order, product = self.repo.get_order(order_id), self.repo.get_product(sku)
         if order is None or product is None:
             raise ValueError(f"unknown order {order_id} or sku {sku}")
+        if not order.is_open:
+            raise ValueError(f"order {order_id} is {order.status}")
         with self.repo.transaction():
             available = self.repo.available_stock(order.warehouse_id, sku)
             if available < qty:
@@ -116,6 +118,9 @@ class InventoryService:
         return AddItemResult("added", sku, product.spoken_name, qty, available - qty)
 
     def _short_line(self, order_id: int, sku: str) -> OrderLine | None:
+        order = self.repo.get_order(order_id)
+        if order is None or not order.is_open:
+            return None
         line = self._line(order_id, sku)
         if line is None or line.reserved_qty >= line.qty or line.resolution is not None:
             return None

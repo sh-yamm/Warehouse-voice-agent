@@ -56,7 +56,10 @@ def _parse_day(t: str, now: datetime) -> tuple[date, bool]:
         return today, True
     for index, name in enumerate(_WEEKDAYS):
         if re.search(rf"\b{name}\b", t):
-            return today + timedelta(days=(index - today.weekday()) % 7), True
+            delta = (index - today.weekday()) % 7
+            if delta == 0 and (re.search(rf"\bnext {name}\b", t) or now.hour >= CLOSE):
+                delta = 7
+            return today + timedelta(days=delta), True
     return today, False
 
 
@@ -143,6 +146,8 @@ def parse_time_window(phrase: str, now: datetime) -> TimeWindow | None:
     start_h, end_h = max(hours[0], OPEN), min(hours[1], CLOSE)
     if start_h >= end_h:
         return None
-    if not explicit_day and _at(day, end_h) <= now:
+    if _at(day, end_h) <= now:
+        if explicit_day:
+            return None  # the caller named a day whose window has already passed
         day += timedelta(days=1)
     return TimeWindow(_at(day, start_h), _at(day, end_h))

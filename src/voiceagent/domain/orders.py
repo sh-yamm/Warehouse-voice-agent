@@ -20,7 +20,7 @@ class OrderService:
                 if line.substitute_sku and line.substitute_qty:
                     self.repo.release_stock(order.warehouse_id, line.substitute_sku, line.substitute_qty)
                 self.repo.update_order_line(order_id, line.sku, reserved_qty=0, substitute_qty=0)
-            if order.status == "scheduled" and order.slot_id is not None:
+            if order.slot_id is not None:
                 self.repo.decrement_booked(order.slot_id)
             self.repo.delete_hold(order_id)
             self.repo.update_order(order_id, status="cancelled", slot_id=None)
@@ -39,10 +39,20 @@ class OrderService:
         existing = self.repo.get_order(order_id).notes
         self.repo.update_order(order_id, notes=f"{existing}; {cleaned}" if existing else cleaned)
 
+    def _release_slot(self, order_id: int) -> None:
+        """Leaving 'scheduled' frees the booked seat so it is not held forever."""
+        order = self.repo.get_order(order_id)
+        if order is not None and order.slot_id is not None:
+            self.repo.decrement_booked(order.slot_id)
+            self.repo.update_order(order_id, slot_id=None)
+
     def schedule_callback(self, order_id: int, when: datetime) -> None:
-        self.repo.update_order(order_id, status="callback", callback_at=when)
+        with self.repo.transaction():
+            self._release_slot(order_id)
+            self.repo.update_order(order_id, status="callback", callback_at=when)
 
     def mark_wrong_person(self, order_id: int) -> None:
         with self.repo.transaction():
+            self._release_slot(order_id)
             self.add_note(order_id, "wrong person answered")
             self.repo.update_order(order_id, status="callback", callback_at=None)

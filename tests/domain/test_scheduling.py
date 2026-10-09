@@ -98,3 +98,36 @@ def test_confirm_twice_fails(sched, world, now):
     sched.hold_slot(1, world["slots"][(1, 18)], now)
     assert sched.confirm_booking(1, now) is not None
     assert sched.confirm_booking(1, now) is None
+
+
+def test_hold_rejected_on_cancelled_order(sched, repo, world, now):
+    from voiceagent.domain.orders import OrderService
+    OrderService(repo).cancel_order(1)
+    assert sched.hold_slot(1, world["slots"][(1, 18)], now) is False
+
+
+def test_hold_rejects_slot_already_started(sched, world, now):
+    assert sched.hold_slot(1, world["slots"][(0, 10)], now.replace(minute=58)) is False
+
+
+def test_shared_repository_threads_cannot_double_hold_last_seat(sched, repo, world, now, monkeypatch):
+    import threading
+    import time as _time
+    slot_id = world["slots"][(0, 16)]
+    repo.increment_booked(slot_id)  # one seat left
+    original = repo.active_holds
+
+    def slow_active_holds(*args, **kwargs):
+        result = original(*args, **kwargs)
+        _time.sleep(0.2)
+        return result
+
+    monkeypatch.setattr(repo, "active_holds", slow_active_holds)
+    results = {}
+    threads = [threading.Thread(target=lambda o=o: results.__setitem__(o, sched.hold_slot(o, slot_id, now)))
+               for o in (1, 2)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert sorted(results.values()) == [False, True]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+import threading
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -29,6 +30,7 @@ class Repository:
         self.conn.row_factory = sqlite3.Row
         self.conn.execute("PRAGMA foreign_keys = ON")
         self._depth = 0
+        self._lock = threading.RLock()  # one connection is shared across threads; serialize transactions
 
     def init_schema(self) -> None:
         self.conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -41,6 +43,10 @@ class Repository:
 
     @contextmanager
     def transaction(self) -> Iterator[None]:
+        with self._lock:
+            yield from self._transaction()
+
+    def _transaction(self) -> Iterator[None]:
         if self._depth:
             self._depth += 1
             try:

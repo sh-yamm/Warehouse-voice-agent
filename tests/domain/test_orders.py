@@ -62,3 +62,32 @@ def test_mark_wrong_person(orders, repo):
     orders.mark_wrong_person(1)
     order = repo.get_order(1)
     assert order.status == "callback" and "wrong person" in order.notes
+
+
+def _book(repo, world, now, hour=18):
+    inv = InventoryService(repo)
+    sched = SchedulingService(repo, inv)
+    slot_id = world["slots"][(1, hour)]
+    sched.hold_slot(1, slot_id, now)
+    sched.confirm_booking(1, now)
+    return sched, slot_id
+
+
+def test_callback_on_scheduled_order_frees_seat(orders, repo, world, now):
+    sched, slot_id = _book(repo, world, now)
+    orders.schedule_callback(1, now + timedelta(hours=1))
+    assert repo.get_slot(slot_id).booked == 0
+    assert repo.get_order(1).slot_id is None
+    sched.hold_slot(1, world["slots"][(1, 19)], now)
+    sched.confirm_booking(1, now)
+    orders.cancel_order(1)
+    assert repo.get_slot(slot_id).booked == 0
+    assert repo.get_slot(world["slots"][(1, 19)]).booked == 0
+
+
+def test_wrong_person_on_scheduled_order_frees_seat(orders, repo, world, now):
+    _, slot_id = _book(repo, world, now)
+    orders.mark_wrong_person(1)
+    assert repo.get_slot(slot_id).booked == 0
+    orders.cancel_order(1)
+    assert repo.get_slot(slot_id).booked == 0

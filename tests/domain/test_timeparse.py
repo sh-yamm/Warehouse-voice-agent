@@ -60,3 +60,19 @@ def test_asap_after_close_is_tomorrow():
     late = datetime(2026, 10, 12, 21, 30)
     window = parse_time_window("asap", late)
     assert (window.start, window.end) == (d(13, 8), d(13, 21))
+
+
+def test_next_weekday_on_same_weekday_is_next_week():
+    window = parse_time_window("next Monday", NOW)
+    assert (window.start, window.end) == (d(19, 8), d(19, 21))
+
+
+def test_same_weekday_after_close_is_next_week():
+    late = datetime(2026, 10, 12, 22, 0)
+    window = parse_time_window("Monday morning", late)
+    assert (window.start, window.end) == (d(19, 8), d(19, 12))
+
+
+def test_today_after_window_passed_is_none():
+    late = datetime(2026, 10, 12, 15, 0)
+    assert parse_time_window("today morning", late) is None
