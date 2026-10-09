@@ -25,6 +25,14 @@ def grounded(value: str, utterance: str, min_share: float = 0.6) -> bool:
     return sum(w in said for w in words) / len(words) >= min_share
 
 
+def said_number(qty: int, utterance: str) -> bool:
+    """True when the customer actually said this quantity (as digits or a number word)."""
+    if qty == 1:
+        return True
+    words = _words(utterance)
+    return str(qty) in words or any(w in words for w, n in _NUMBER_WORDS.items() if n == qty)
+
+
 def split_quantity(value: str) -> tuple[int, str]:
     """'two packets of Amul milk' -> (2, 'Amul milk'). The quantity defaults to 1."""
     qty, found, rest = 1, False, []

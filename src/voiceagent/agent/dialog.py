@@ -1,10 +1,11 @@
 """Deterministic call dialog. The LLM only names the intent; this decides, acts and speaks."""
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from voiceagent.agent.intent import Intent
-from voiceagent.agent.nlu import grounded, split_quantity
+from voiceagent.agent.nlu import grounded, said_number, split_quantity
 from voiceagent.agent.tools import CallSession
 from voiceagent.domain.context import spoken_day
 from voiceagent.domain.inventory import Shortage
@@ -30,7 +31,7 @@ _ORDINALS = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2}
 _NEGATIONS = {"no", "not", "don't", "dont", "keep", "never", "nope", "wait", "stop"}
 # Ending the call for a callback needs a real "not now" cue; otherwise it was probably a driver instruction.
 _CALLBACK_CUES = ("later", "busy", "call back", "call me back", "callback", "another time", "driving", "meeting",
-                  "not now", "can't talk", "cannot talk", "in an hour", "in a while", "tomorrow", "tonight")
+                  "not now", "can't talk", "cannot talk", "in an hour", "in a while")
 # A "note" made only of these words means "no instructions".
 _EMPTY_NOTE_WORDS = {"nothing", "none", "no", "nope", "thanks", "thank", "you", "that's", "thats", "all", "it",
                      "is", "fine", "ok", "okay", "nah", "not", "really"}
@@ -77,7 +78,8 @@ class DialogManager:
             intent = Intent("unclear")
         reply = self._dispatch(intent, utterance)
         if reply.sentences:
-            self.question = reply.sentences[-1]
+            # What the intent reader sees as "AGENT:": the whole question incl. listed options, not just the last line.
+            self.question = " ".join(s for s in reply.sentences if s not in ACKS) or reply.sentences[-1]
             self.transcript.append({"role": "assistant", "content": " ".join(reply.sentences)})
         return reply
 
@@ -92,9 +94,12 @@ class DialogManager:
         if intent.name == "callback":
             if any(cue in utterance.lower() for cue in _CALLBACK_CUES):
                 return self._callback(intent, utterance)
-            if "add_note" not in self.allowed_intents():
+            if "give_time" in self.allowed_intents() and parse_time_window(utterance, self.session.clock()):
+                intent = Intent("give_time", intent.value)  # "tomorrow evening is better" is a delivery time
+            elif "add_note" in self.allowed_intents():
+                intent = Intent("add_note", intent.value or utterance)
+            else:
                 return Reply(["Sorry.", "I didn't catch that.", *self._ask()])
-            intent = Intent("add_note", intent.value or utterance)
         if intent.name == "add_item":
             return self._add_item(intent, utterance)
         if intent.name == "cancel" and self.state != "confirm_cancel":
@@ -189,6 +194,8 @@ class DialogManager:
         if not grounded(intent.value, utterance):
             return Reply(["Sorry.", "Which product would you like to add?"])
         qty, product = split_quantity(intent.value)
+        if not said_number(qty, utterance):
+            qty = 1  # a quantity the customer never said (e.g. copied from "we only have 5 left")
         result = self.session.add_item(product, qty)
         if result["status"] == "added":
             return Reply(["Sure.", f"I've added {qty} {result['item']}.", *self._ask()])
@@ -210,6 +217,8 @@ class DialogManager:
                 return Reply(sentences + self._shortage_question(shortages[0]))
             self.state = "schedule"
             return Reply(sentences + ["When would you like it delivered?"])
+        if any(cue in utterance.lower() for cue in _CALLBACK_CUES):
+            return self._callback(intent, utterance)  # "No, I'm driving, call me later" is not a wrong number
         self.session.wrong_person()
         self.state = "closed"
         return Reply(["Sorry for the trouble.", "I'll try again later. Goodbye!"], end_call=True)
@@ -240,6 +249,10 @@ class DialogManager:
         return Reply(sentences + ["When would you like it delivered?"])
 
     def _check_time(self, intent: Intent, utterance: str) -> Reply:
+        if self.alternatives:
+            index = self._ordinal_index(utterance)
+            if index is not None:  # "the second one" labelled as a time still means a listed option
+                return self._pick(index)
         phrase = intent.value if grounded(intent.value, utterance) else utterance
         result = self.session.check_slot(phrase)
         if result["status"] == "unclear" and phrase != utterance:
@@ -256,19 +269,32 @@ class DialogManager:
         reason = "That time is full." if result["status"] == "full" else "We have no slots then."
         return Reply(["Sorry.", reason, f"I have {self._options()}.", "Which works for you?"])
 
-    def _option_index(self, text: str) -> int | None:
-        words = text.lower().replace(",", " ").split()
-        for word in words:
+    def _ordinal_index(self, text: str) -> int | None:
+        for word in text.lower().replace(",", " ").replace(".", " ").split():
             if word in _ORDINALS and _ORDINALS[word] < len(self.alternatives):
                 return _ORDINALS[word]
-            if word == "last":
+            if word == "last" and self.alternatives:
                 return len(self.alternatives) - 1
+        return None
+
+    def _option_index(self, text: str) -> int | None:
+        index = self._ordinal_index(text)
+        if index is not None:
+            return index
         window = parse_time_window(text, self.session.clock())
         if window:
             for index, alt in enumerate(self.alternatives):
                 if window.start <= self.session.repo.get_slot(alt["slot_id"]).start < window.end:
                     return index
         return None
+
+    def _pick(self, index: int) -> Reply:
+        result = self.session.choose_slot(self.alternatives[index]["slot_id"])
+        if result["status"] != "held":
+            self.alternatives = result["alternatives"]
+            return Reply(["Sorry.", "That slot just filled up.", *self._ask()])
+        self.alternatives = []
+        return self._after_slot_agreed(f"{result['slot']} it is.")
 
     def _after_slot_agreed(self, prefix: str | None) -> Reply:
         lead = ["Great.", *([prefix] if prefix else [])]
@@ -282,15 +308,11 @@ class DialogManager:
         if intent.name == "give_time":
             return self._check_time(intent, utterance)
         if intent.name == "pick_option" and self.alternatives:
-            index = self._option_index(intent.value or utterance)
+            text = intent.value if grounded(intent.value, utterance) else utterance
+            index = self._option_index(text)
             if index is None:
                 return Reply(["Sorry.", f"Was that {self._options()}?"])
-            result = self.session.choose_slot(self.alternatives[index]["slot_id"])
-            if result["status"] != "held":
-                self.alternatives = result["alternatives"]
-                return Reply(["Sorry.", "That slot just filled up.", *self._ask()])
-            self.alternatives = []
-            return self._after_slot_agreed(f"{result['slot']} it is.")
+            return self._pick(index)
         if intent.name == "confirm" and self.session.held_slot_id:
             return self._after_slot_agreed(None)
         if intent.name == "deny":
@@ -298,7 +320,7 @@ class DialogManager:
         return Reply(["Okay.", *self._ask()])
 
     def _change_address(self, intent: Intent, utterance: str, then: str) -> Reply:
-        if len(intent.value) < 5 or not grounded(intent.value, utterance):
+        if len(re.findall(r"[a-z0-9]+", intent.value.lower())) < 3 or not grounded(intent.value, utterance):
             if self.state == "address":
                 self.awaiting_address = True
             return Reply(["Sorry.", "Could you tell me the full address again?"])
@@ -316,7 +338,8 @@ class DialogManager:
     def _on_address(self, intent: Intent, utterance: str) -> Reply:
         if intent.name == "change_address":
             return self._change_address(intent, utterance, then="note")
-        if intent.name == "confirm" and not self.awaiting_address:
+        if intent.name == "confirm":
+            self.awaiting_address = False  # "the old one is fine" while we waited for a new address
             self.state = "note"
             return Reply(["Okay.", "Any instructions for the driver?"])
         self.awaiting_address = True

@@ -38,6 +38,8 @@ def _normalize(phrase: str) -> str:
     t = re.sub(r"[^a-z0-9: ]", " ", t)
     t = re.sub(r"\bo clock\b", " ", t)
     t = " ".join(t.split())
+    # "the second one" / "that one" pick an option; their "one" is not 1 PM
+    t = re.sub(r"\b(the|that|this)\s+(?:(?:first|second|third|last|later|earlier|other|next|same)\s+)?one\b", " ", t)
     t = _NUMBER_RE.sub(lambda m: _NUMBER_WORDS[m.group(1)], t)
     t = re.sub(r"\bhalf past (\d{1,2})\b", r"\1:30", t)
     t = re.sub(r"\bquarter past (\d{1,2})\b", r"\1:15", t)

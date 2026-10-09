@@ -238,3 +238,64 @@ def test_callback_without_a_later_cue_is_a_driver_note(dm, repo):
 def test_real_callback_still_ends_call(dm):
     to_note(dm)
     assert say(dm, "callback", "I'm driving, call me back later.", "call me back later").end_call
+
+
+# ── final-review fixes ─────────────────────────────────────────────────────
+def offer_alternatives(dm):
+    to_schedule(dm)
+    say(dm, "give_time", "Today at 5 pm.", "today at 5 pm")
+    assert dm.alternatives
+
+
+def test_pick_option_value_must_be_grounded(dm, repo):
+    offer_alternatives(dm)
+    reply = say(dm, "pick_option", "Hmm, none of those, what about Wednesday?", "today, 6 to 7 PM")
+    assert reply.sentences[0] == "Sorry." and repo.get_active_hold(1, NOW) is None
+
+
+def test_unsaid_quantity_defaults_to_one(dm, repo):
+    to_schedule(dm)
+    say(dm, "add_item", "Ok, add Nandini milk.", "5 Nandini milk")
+    assert next(l for l in repo.get_order_lines(1) if l.sku == "MILK2").qty == 1
+
+
+def test_ordinal_read_as_time_picks_the_listed_option(dm, repo):
+    offer_alternatives(dm)
+    reply = say(dm, "give_time", "The second one.", "the second one")
+    assert reply.sentences[1] == "today, 4 to 5 PM it is."
+
+
+def test_confirm_while_awaiting_address_keeps_current_address(dm):
+    to_schedule(dm)
+    say(dm, "give_time", "Tomorrow after 5.", "tomorrow after 5")
+    say(dm, "confirm", "Yes.")
+    say(dm, "deny", "No.")
+    reply = say(dm, "confirm", "Actually the old one is fine.")
+    assert dm.state == "note" and reply.sentences[-1] == "Any instructions for the driver?"
+
+
+def test_time_phrase_read_as_callback_is_a_time_in_schedule(dm, repo):
+    to_schedule(dm)
+    reply = say(dm, "callback", "Tomorrow evening is better.", "tomorrow evening")
+    assert not reply.end_call and reply.sentences[1] == "I can deliver tomorrow, 5 to 6 PM."
+    assert repo.get_order(1).status == "pending_schedule"
+
+
+def test_busy_at_greeting_read_as_deny_is_a_callback(dm, repo):
+    reply = say(dm, "deny", "No, I'm driving, call me later.")
+    assert reply.end_call and repo.get_order(1).status == "callback"
+    assert dm.session.outcome == "callback"
+
+
+def test_partial_address_is_not_saved(dm, repo):
+    to_schedule(dm)
+    say(dm, "give_time", "Tomorrow after 5.", "tomorrow after 5")
+    say(dm, "confirm", "Yes.")
+    reply = say(dm, "change_address", "No, it's flat 4B.", "flat 4B")
+    assert reply.sentences == ["Sorry.", "Could you tell me the full address again?"]
+    assert repo.get_order(1).address == "12 MG Road, Bengaluru"
+
+
+def test_question_context_includes_listed_options(dm):
+    offer_alternatives(dm)
+    assert "I have today, 3 to 4 PM" in dm.question and dm.question.endswith("Which works for you?")

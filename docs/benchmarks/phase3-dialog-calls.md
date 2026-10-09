@@ -15,7 +15,7 @@ Stack:
 
 **Phase 3 design:**
 - **One LLM call per turn.** It returns `{"intent", "value"}`, restricted by JSON schema to the intents valid in the current state.
-- **Code runs the action and speaks a template.** Every reply opens with a pre-synthesized acknowledgement.
+- **Code runs the action and speaks a template.** Almost every reply opens with a pre-synthesized acknowledgement. The exceptions are answers to questions and the wrong-person goodbye.
 - **Extracted values must be grounded** in the customer's words.
 - **Guards protect the actions that change or end the call:** cancel needs a second, non-negated "yes"; a callback needs a "not now" cue; a note made only of filler words means "no instructions".
 
@@ -68,7 +68,7 @@ Neither involved the intent reader timing out.
 
 ## Intent reader evaluation (`bench/intent_eval.py`, 48 labelled utterances)
 
-| Model | Accuracy | Grounded values | Latency p50 / p95 |
+| Model | Accuracy | Value matches label | Latency p50 / p95 |
 |---|---|---|---|
 | Qwen3.5-2B Q4_K_M (prompt v1) | 0.875 | 1.000 | 318 / 379 ms |
 | **Qwen3.5-2B Q4_K_M (prompt v2)** | **0.938** | 0.979 | 324 / 435 ms |
@@ -76,7 +76,7 @@ Neither involved the intent reader timing out.
 
 Remaining 2B misses, and what the dialog does with each:
 - "Six to seven is good." read as `give_time` instead of `pick_option`. Harmless: the same slot is found.
-- "I'm busy now, call me later." had a paraphrased value. Harmless: grounding drops it and the callback defaults to +1 h.
+- "I'm busy now, call me later." had a value copied from the prompt's own intent description, not from the customer. Harmless, but with little margin: grounding rejects it at 0.5 against a 0.6 threshold, and the callback defaults to +1 h.
 - "Nothing, thanks." read as `add_note`. **Guarded:** a filler-only note is treated as "no instructions".
 - "Yes. Oh and tell him to call first." read as `callback`. **Guarded:** with no "not now" cue, it becomes a driver note.
 
@@ -97,3 +97,19 @@ Remaining 2B misses, and what the dialog does with each:
   - a shorter `stop_secs` once tested on human speech
 - **p95 is dominated by segmentation edge cases** (split utterances), not model speed.
 - **All of this used synthesized customer voices.** Human recordings, with Indian-accented English, background noise and real pauses, are the next validation step.
+
+## Fixes from the final code review (after these calls)
+
+The final review found these. Each fix has a regression test.
+
+- **Slot picks must be grounded.** A `pick_option` value copied from the agent's own list no longer holds a slot.
+- **Quantities must be said.** A quantity the customer never said is ignored (it defaults to 1).
+- **"The second one" is never read as 1 PM.** Ordinal picks win even when the reader labels them `give_time`.
+- **The address question can't loop.** "The old one is fine" while the agent waits for a new address keeps the current one.
+- **A delivery time read as a callback stays a delivery time.** "Tomorrow evening is better" no longer ends the call.
+- **"No, I'm driving, call me later" at the greeting is a callback,** not a wrong number.
+- **Partial addresses are rejected.** Fewer than 3 words, like "flat 4B", is not saved.
+- **No customer speech is lost to interruptions:**
+  - Turns cut short by an interruption are joined with the next turn.
+  - An interruption that brings no new words (a cough) gets its pending turn answered after 2.5 s of quiet.
+- **The intent reader now sees the whole question,** including listed options, the same as the evaluation set.

@@ -3,7 +3,7 @@ import asyncio
 import pytest
 from pipecat.frames.frames import EndTaskFrame, LLMContextFrame, TTSSpeakFrame
 from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.tests.utils import run_test
+from pipecat.tests.utils import SleepFrame, run_test
 
 from voiceagent.agent.dialog import DialogManager
 from voiceagent.agent.intent import Intent
@@ -69,3 +69,36 @@ def test_reply_dropped_after_interruption(manager):
     processor = DialogProcessor(manager, FakeClassifier(Intent("confirm"), on_classify=barge_in))
     down, up = asyncio.run(run_test(processor, frames_to_send=[LLMContextFrame(context=context("Yes."))]))
     assert spoken(down) == [] and manager.state == "greet"
+
+
+def test_unanswered_user_messages_are_joined(manager):
+    classifier = FakeClassifier(Intent("confirm"))
+    ctx = LLMContext(messages=[{"role": "user", "content": "Yes,"}, {"role": "user", "content": "this is Priya."}])
+    asyncio.run(run_test(DialogProcessor(manager, classifier), frames_to_send=[LLMContextFrame(context=ctx)]))
+    assert classifier.calls[0][1] == "Yes, this is Priya."
+    assert manager.transcript[1] == {"role": "user", "content": "Yes, this is Priya."}
+
+
+def test_answered_messages_are_not_sent_again(manager):
+    classifier = FakeClassifier(Intent("unclear"))
+    first = LLMContext(messages=[{"role": "user", "content": "Hmm?"}])
+    second = LLMContext(messages=[{"role": "user", "content": "Hmm?"}, {"role": "user", "content": "Yes."}])
+    asyncio.run(run_test(DialogProcessor(manager, classifier), frames_to_send=[
+        LLMContextFrame(context=first), SleepFrame(sleep=0.2), LLMContextFrame(context=second)]))
+    assert [c[1] for c in classifier.calls] == ["Hmm?", "Yes."]
+
+
+def test_reply_recovers_when_interruption_brings_no_new_words(manager):
+    processor = None
+    count = {"n": 0}
+
+    def cough_during_first_read():
+        count["n"] += 1
+        if count["n"] == 1:
+            processor._on_interruption()  # e.g. a cough: interruption, but no new transcript follows
+
+    processor = DialogProcessor(manager, FakeClassifier(Intent("confirm"), on_classify=cough_during_first_read),
+                                recovery_secs=0.2)
+    down, up = asyncio.run(run_test(processor, frames_to_send=[LLMContextFrame(context=context("Yes.")),
+                                                               SleepFrame(sleep=0.8)]))
+    assert spoken(down)[0] == "Great." and count["n"] == 2
