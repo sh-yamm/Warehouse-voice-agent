@@ -58,10 +58,12 @@ Pipecat pipeline (one per call)
 ```
 
 ### Design decisions
-1. **One user-facing LLM, no LLM router.** The conversation graph (Pipecat Flows) restricts each
-   node to a short prompt and 2–4 tools. Business rules (slot capacity, stock, substitution
-   validity) are deterministic code. A serial "decide tool vs reply" LLM would add a full
-   LLM round trip to every turn, so it is rejected.
+1. **The LLM reads intent; code acts and speaks.**
+   - **Per turn:** exactly one short LLM call returns `{"intent", "value"}`. A JSON schema limits `intent` to the intents valid in the current dialog state.
+   - **Action and reply:** a deterministic dialog manager runs the tools and speaks templated replies. Each reply opens with a short acknowledgement ("Sure.", "Got it.") whose audio is pre-synthesized, so speech starts immediately.
+   - **Grounding:** extracted values (product, address, time, note) must be grounded in the customer's own words, or nothing is changed.
+   - **Questions:** answered from call facts. Anything off-topic gets a fixed polite refusal; there is no free-form generation.
+   - **Why:** Phase 2 used Pipecat Flows with LLM function calling. Qwen3.5-2B made tool calls nobody asked for, with invented arguments, and each turn needed two LLM passes (about 5.5 s per reply). See `docs/benchmarks/phase2-live-calls.md`.
 2. **Pre-call context injection.** The call is outbound, so customer, order lines with stock status
    and the next 6 free slots are loaded before dialling and placed in the static prefix of the
    system prompt. Most turns need no tool call; the static prefix keeps llama.cpp's prompt cache hot.
@@ -97,26 +99,23 @@ Parakeet TDT 0.6B v2 (re-decoded per utterance) or Kyutai STT 1B, Qwen3-4B/1.7B 
 Kokoro-82M. Service interfaces and config are kept stack-agnostic so that branch only swaps
 services and versions. Latency results always state which stack produced them.
 
-## 3. Conversation graph (Pipecat Flows)
+## 3. Dialog states and intents
 
-| Node | Goal | Tools | Exits |
+| State | Agent asks | Intents accepted (plus global: add_item, callback, cancel, question, unclear) | Goes to |
 |---|---|---|---|
-| `greet_verify` | Introduce, confirm the right person | `confirm_identity`, `wrong_person`, `callback_later` | `present_order`, `wrong_person`, `callback` |
-| `present_order` | Summarise items; mention shortages upfront | `handle_shortage`, `add_item(sku, qty)`, `cancel_order` | `shortage`, `schedule`, `cancel` |
-| `shortage` | Offer partial / substitute / wait | `check_stock`, `apply_substitution`, `set_partial`, `wait_restock` | `schedule` |
-| `schedule` | Get preferred window | `check_slot(phrase)` → free, or full + 3 nearest alternatives; `hold_slot(slot_id)` | `details` |
-| `details` | Address change, delivery notes | `update_address`, `add_note` | `confirm` |
-| `confirm` | Read back items, time, address; get explicit yes | `confirm_booking`, `change(field)` | `close` or back to the field's node |
-| `callback`, `wrong_person`, `cancel`, `close` | Polite wrap-up | `schedule_callback(time)`, `end_call(outcome)` | end |
-
-Global tools available in every node: `cancel_order`, `callback_later`, `add_item`.
+| `greet` | "...Am I speaking with {first name}?" | confirm, deny, wrong_person | `shortage` / `schedule` / closed |
+| `shortage` | "The {item} is out of stock. Would you like {substitute} instead, the rest without it, or to wait until {restock}?" | substitute, send_available, wait_restock, deny | next shortage / `schedule` |
+| `schedule` | "When would you like it delivered?" / "I can deliver {slot}. Shall I book that?" / "I have {a}, {b} or {c}." | give_time, confirm, deny, pick_option | `address` |
+| `address` | "Should we deliver to {address}?" | confirm, deny, change_address | `note` |
+| `note` | "Any instructions for the driver?" | confirm, deny, add_note, change_address | `confirm` |
+| `confirm` | "To confirm, {items}, delivered {slot}, to {address}. Shall I book it?" | confirm, deny, give_time, change_address, add_note | closed (booked) / `schedule` |
+| `confirm_cancel` | "Just to confirm, do you want to cancel the whole order?" | confirm, deny | closed (cancelled) / previous state |
 
 Rules:
-- Slots are **held** for 5 minutes when offered and **committed** only on `confirm_booking`.
-- Responses are 1–2 short spoken sentences; no markdown, lists, or symbols; numbers and times
-  written as spoken words.
-- The agent never states an item, price, quantity or slot that is not in the pre-call context or
-  a tool result.
+- **Slot holds:** a slot is held for 5 minutes when offered and committed only on `confirm`.
+- **Changes need grounding:** an order-changing action (add_item, change_address, add_note) runs only if its extracted value is grounded in the utterance. "Yes", "no" and "unclear" never change the order.
+- **Cancelling needs two steps:** an explicit cancel request, then a second "yes".
+- **Replies are templates.** They are filled from call facts and tool results.
 
 ## 4. Data model (SQLite)
 
