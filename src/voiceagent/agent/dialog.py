@@ -24,6 +24,7 @@ STATE_INTENTS = {
     "note": ["confirm", "deny", "add_note", "change_address", *GLOBAL_INTENTS],
     "confirm": ["confirm", "deny", "give_time", "change_address", "add_note", *GLOBAL_INTENTS],
     "confirm_cancel": ["confirm", "deny", "question", "unclear"],
+    "confirm_address": ["confirm", "deny", "change_address", "callback", "cancel", "question", "unclear"],
     "closed": ["unclear"],
 }
 _ORDINALS = {"first": 0, "1st": 0, "second": 1, "2nd": 1, "third": 2, "3rd": 2}
@@ -60,6 +61,8 @@ class DialogManager:
         self.substitute: dict | None = None
         self.awaiting_address = False
         self.details_done = False
+        # (candidate address, state to continue in) while the customer confirms a new address
+        self.pending_address: tuple[str | None, str] | None = None
         self._before_cancel = "greet"
         self.question = self.greeting()
         self.transcript: list[dict] = [{"role": "assistant", "content": self.greeting()}]
@@ -170,6 +173,9 @@ class DialogManager:
             return self._read_back()
         if self.state == "confirm_cancel":
             return ["Do you want to cancel the whole order?"]
+        if self.state == "confirm_address":
+            value = self.pending_address[0] if self.pending_address else None
+            return [f"Is the new address {value}?"] if value else ["Could you tell me the full address again?"]
         return []
 
     def _answer(self, text: str) -> str:
@@ -324,16 +330,34 @@ class DialogManager:
             if self.state == "address":
                 self.awaiting_address = True
             return Reply(["Sorry.", "Could you tell me the full address again?"])
-        result = self.session.update_address(intent.value)
-        if result["status"] != "updated":
-            return Reply(["Sorry.", "Could you tell me the full address again?"])
-        self.awaiting_address = False
-        updated = f"I've updated the address to {result['address']}."
+        # Speech recognition can turn an address into plausible-looking nonsense, and the address decides where
+        # the order goes, so it is read back and saved only after an explicit yes.
+        self.pending_address = (intent.value, then)
+        self.state = "confirm_address"
+        return Reply(["Okay.", f"Just to check, the new address is {intent.value}.", "Is that right?"])
+
+    def _continue_after_address(self, lead: list[str], then: str) -> Reply:
+        self.pending_address, self.awaiting_address = None, False
         if then == "note":
             self.state = "note"
-            return Reply(["Got it.", updated, "Any instructions for the driver?"])
+            return Reply(lead + ["Any instructions for the driver?"])
         self.state = "confirm"
-        return Reply(["Got it.", updated, *self._read_back()])
+        return Reply(lead + self._read_back())
+
+    def _on_confirm_address(self, intent: Intent, utterance: str) -> Reply:
+        value, then = self.pending_address or (None, "note")
+        if intent.name == "change_address":
+            return self._change_address(intent, utterance, then)
+        negated = bool(_NEGATIONS & set(utterance.lower().replace(",", " ").replace(".", " ").split()))
+        if intent.name == "confirm" and value and not negated:
+            result = self.session.update_address(value)
+            if result["status"] == "updated":
+                return self._continue_after_address(
+                    ["Got it.", f"I've updated the address to {result['address']}."], then)
+        if intent.name == "confirm" and not value:  # no candidate pending: "keep the old one" keeps it
+            return self._continue_after_address(["Okay.", f"I'll keep {self._address()}."], then)
+        self.pending_address = (None, then)  # a "no": forget the candidate, keep the saved address
+        return Reply(["Sorry.", "Could you tell me the full address again?"])
 
     def _on_address(self, intent: Intent, utterance: str) -> Reply:
         if intent.name == "change_address":

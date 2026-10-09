@@ -128,6 +128,10 @@ def test_change_address_grounded_and_ungrounded(dm, repo):
         "Sorry.", "Could you tell me the full address again?"]
     assert repo.get_order(1).address == "12 MG Road, Bengaluru"
     reply = say(dm, "change_address", "No, it's 42 Church Street, Bengaluru.", "42 Church Street, Bengaluru")
+    assert reply.sentences == ["Okay.", "Just to check, the new address is 42 Church Street, Bengaluru.",
+                               "Is that right?"]
+    assert repo.get_order(1).address == "12 MG Road, Bengaluru"  # nothing saved until the customer confirms
+    reply = say(dm, "confirm", "Yes.")
     assert reply.sentences == ["Got it.", "I've updated the address to 42 Church Street, Bengaluru.",
                                "Any instructions for the driver?"]
     assert repo.get_order(1).address == "42 Church Street, Bengaluru" and dm.state == "note"
@@ -299,3 +303,23 @@ def test_partial_address_is_not_saved(dm, repo):
 def test_question_context_includes_listed_options(dm):
     offer_alternatives(dm)
     assert "I have today, 3 to 4 PM" in dm.question and dm.question.endswith("Which works for you?")
+
+
+def test_misheard_address_is_never_saved_without_a_yes(dm, repo):
+    to_schedule(dm)
+    say(dm, "give_time", "Tomorrow after 5.", "tomorrow after 5")
+    say(dm, "confirm", "Yes.")
+    say(dm, "change_address", "She used that as to 21st.", "She used that as to 21st.")  # STT garbage
+    assert say(dm, "deny", "No.").sentences == ["Sorry.", "Could you tell me the full address again?"]
+    reply = say(dm, "confirm", "Keep the old one.")
+    assert reply.sentences[:2] == ["Okay.", "I'll keep 12 MG Road, Bengaluru."]
+    assert repo.get_order(1).address == "12 MG Road, Bengaluru" and dm.state == "note"
+
+
+def test_negated_yes_does_not_save_address(dm, repo):
+    to_schedule(dm)
+    say(dm, "give_time", "Tomorrow after 5.", "tomorrow after 5")
+    say(dm, "confirm", "Yes.")
+    say(dm, "change_address", "It's 42 Church Street, Bengaluru.", "42 Church Street, Bengaluru")
+    say(dm, "confirm", "No, not that.")
+    assert repo.get_order(1).address == "12 MG Road, Bengaluru"
