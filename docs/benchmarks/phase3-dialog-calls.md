@@ -113,3 +113,10 @@ The final review found these. Each fix has a regression test.
   - Turns cut short by an interruption are joined with the next turn.
   - An interruption that brings no new words (a cough) gets its pending turn answered after 2.5 s of quiet.
 - **The intent reader now sees the whole question,** including listed options, the same as the evaluation set.
+
+## Post-review rerun (same three scripts, after the fixes above)
+
+- **All three calls correct** (booked / booked / cancelled), with 0 unrequested changes and no errors.
+- **Latency: 17 responses, p50 841 ms, p95 1,757 ms.** Across the two runs with the current pipeline, the p50 is **735–841 ms**.
+- **The slow turns (~1.7 s) are short answers** that Smart Turn judged incomplete. They wait out the 1.2 s silence fallback.
+- **Next latency lever:** release the turn right away when the dialog state expects a short answer and the transcript is one ("yes", "no", "book it").
