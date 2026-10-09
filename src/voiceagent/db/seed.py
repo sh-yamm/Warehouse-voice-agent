@@ -34,7 +34,7 @@ WAREHOUSES = [(1, "Koramangala Hub", "south"), (2, "Indiranagar Hub", "east")]
 
 
 def generate_world(repo: Repository, now: datetime, seed: int = 7, n_customers: int = 200,
-                   n_orders: int = 300, days: int = 3) -> None:
+                   n_orders: int = 300, days: int = 7) -> None:
     rng = random.Random(seed)
     today = now.replace(hour=0, minute=0, second=0, microsecond=0)
     with repo.transaction():

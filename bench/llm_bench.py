@@ -21,7 +21,7 @@ from voiceagent.domain.scheduling import SchedulingService
 
 URL = "http://127.0.0.1:8080/v1/chat/completions"
 NOW = datetime(2026, 10, 12, 10, 0)
-SYSTEM_TEMPLATE = """You are Asha, a friendly delivery-scheduling assistant calling customers on behalf of QuickMart.
+SYSTEM_TEMPLATE = """You are Avio, a friendly delivery-scheduling assistant calling customers on behalf of AvioStack.
 You are speaking on a phone call. Reply in one or two short spoken sentences.
 Never use lists, markdown, symbols or emojis. Say times the way people speak them.
 Only mention items, quantities and delivery slots that appear in the context below.
@@ -109,7 +109,7 @@ def main() -> None:
     with GpuMemorySampler() as gpu, httpx.Client() as client:
         for rep in range(args.reps):
             messages = [{"role": "system", "content": system},
-                        {"role": "assistant", "content": f"Hi, this is Asha from QuickMart. Am I speaking with {first_name}?"}]
+                        {"role": "assistant", "content": f"Hi, this is Avio from AvioStack. Am I speaking with {first_name}?"}]
             for index, user in enumerate(USER_TURNS):
                 messages.append({"role": "user", "content": user.format(name=first_name)})
                 turn = stream_turn(client, messages)

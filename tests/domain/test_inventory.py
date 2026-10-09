@@ -98,3 +98,10 @@ def test_closed_order_rejects_inventory_changes(inv, repo):
     assert inv.set_partial(1, "BREAD1") is False
     assert inv.wait_restock(1, "BREAD1") is None
     assert repo.available_stock(1, "MILK2") == 5
+
+
+def test_substitutes_prefer_the_most_similar_product(inv, repo):
+    repo.insert_product("BREAD3", "Modern Brown Bread 400g", "Modern brown bread", "bakery", 47.0)
+    repo.insert_stock(1, "BREAD3", 6)
+    [shortage] = inv.shortages(1)
+    assert [s.sku for s in shortage.substitutes] == ["BREAD3", "BREAD2"]

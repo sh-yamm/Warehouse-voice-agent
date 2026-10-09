@@ -1,0 +1,153 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7c3aed"/>
+    </marker>
+    <style>
+      .t { font-size: 14px; font-weight: 600; fill: #0f172a; }
+      .s { font-size: 12px; fill: #334155; }
+      .x { font-size: 11px; fill: #64748b; }
+      .h { font-size: 13px; font-weight: 700; fill: #1e293b; letter-spacing: .3px; }
+      .ln { stroke: #475569; stroke-width: 1.6; fill: none; }
+      .lp { stroke: #7c3aed; stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+    </style>
+  </defs>
+  <rect width="1200" height="720" fill="#ffffff"/>
+  <text x="600" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Warehouse voice agent: system architecture</text>
+  <text x="600" y="56" text-anchor="middle" class="x">Everything runs locally on one RTX 4060 laptop. One pipeline per call. The LLM only reads intent; deterministic code acts and speaks.</text>
+
+  <!-- customer -->
+  <rect x="20" y="150" width="150" height="150" rx="14" fill="#ecfeff" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="95" y="182" text-anchor="middle" class="t">Customer</text>
+  <text x="95" y="204" text-anchor="middle" class="s">browser call</text>
+  <text x="95" y="222" text-anchor="middle" class="s">(WebRTC, Opus)</text>
+  <text x="95" y="252" text-anchor="middle" class="x">mic in / speaker out</text>
+  <text x="95" y="270" text-anchor="middle" class="x">echo cancellation</text>
+  <text x="95" y="286" text-anchor="middle" class="x">in the browser</text>
+
+  <!-- pipeline container -->
+  <rect x="200" y="78" width="770" height="262" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="215" y="100" class="h">PIPECAT 1.12 PIPELINE</text>
+
+  <!-- input row -->
+  <rect x="215" y="115" width="135" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="282" y="143" text-anchor="middle" class="t">WebRTC in</text>
+  <text x="282" y="163" text-anchor="middle" class="x">SmallWebRTC</text>
+  <text x="282" y="179" text-anchor="middle" class="x">transport</text>
+
+  <rect x="368" y="115" width="150" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="443" y="140" text-anchor="middle" class="t">Turn-taking</text>
+  <text x="443" y="160" text-anchor="middle" class="s">Silero VAD (200 ms)</text>
+  <text x="443" y="177" text-anchor="middle" class="s">Smart Turn v3.2 (CPU)</text>
+
+  <rect x="536" y="115" width="150" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="611" y="140" text-anchor="middle" class="t">Speech to text</text>
+  <text x="611" y="160" text-anchor="middle" class="s">faster-whisper</text>
+  <text x="611" y="177" text-anchor="middle" class="s">distil-small.en, greedy</text>
+
+  <rect x="704" y="115" width="110" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="759" y="143" text-anchor="middle" class="t">User turn</text>
+  <text x="759" y="163" text-anchor="middle" class="s">aggregator</text>
+  <text x="759" y="179" text-anchor="middle" class="x">1 frame / turn</text>
+
+  <!-- dialog processor -->
+  <rect x="832" y="115" width="125" height="205" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="2"/>
+  <text x="894" y="142" text-anchor="middle" class="t">Dialog</text>
+  <text x="894" y="160" text-anchor="middle" class="t">Processor</text>
+  <text x="894" y="186" text-anchor="middle" class="x">replaces the</text>
+  <text x="894" y="201" text-anchor="middle" class="x">LLM service</text>
+  <text x="894" y="226" text-anchor="middle" class="x">joins cut-off</text>
+  <text x="894" y="241" text-anchor="middle" class="x">turns, drops</text>
+  <text x="894" y="256" text-anchor="middle" class="x">stale replies</text>
+  <text x="894" y="281" text-anchor="middle" class="x">speaks reply as</text>
+  <text x="894" y="296" text-anchor="middle" class="x">TTSSpeakFrames</text>
+
+  <!-- output row -->
+  <rect x="215" y="240" width="135" height="80" rx="10" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="282" y="268" text-anchor="middle" class="t">WebRTC out</text>
+  <text x="282" y="288" text-anchor="middle" class="x">barge-in stops</text>
+  <text x="282" y="304" text-anchor="middle" class="x">playback</text>
+
+  <rect x="368" y="240" width="446" height="80" rx="10" fill="#dcfce7" stroke="#16a34a"/>
+  <text x="591" y="266" text-anchor="middle" class="t">Text to speech: Kokoro-82M (PyTorch, CUDA)</text>
+  <text x="591" y="287" text-anchor="middle" class="s">openers ("Sure.", "Got it.") and the greeting are pre-synthesized: first audio ≈ 0 ms</text>
+  <text x="591" y="306" text-anchor="middle" class="x">rest of the reply synthesized per sentence, warmed up at load</text>
+
+  <!-- input arrows -->
+  <path class="ln" d="M170,200 C190,200 195,155 213,155" marker-end="url(#a)"/>
+  <path class="ln" d="M350,155 L366,155" marker-end="url(#a)"/>
+  <path class="ln" d="M518,155 L534,155" marker-end="url(#a)"/>
+  <path class="ln" d="M686,155 L702,155" marker-end="url(#a)"/>
+  <path class="ln" d="M814,155 L830,155" marker-end="url(#a)"/>
+  <!-- output arrows -->
+  <path class="ln" d="M832,280 L816,280" marker-end="url(#a)"/>
+  <path class="ln" d="M368,280 L352,280" marker-end="url(#a)"/>
+  <path class="ln" d="M215,280 C195,280 192,250 172,250" marker-end="url(#a)"/>
+
+  <!-- brain -->
+  <rect x="1000" y="115" width="180" height="120" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="1090" y="142" text-anchor="middle" class="t">Intent reader</text>
+  <text x="1090" y="162" text-anchor="middle" class="s">llama-server (CUDA)</text>
+  <text x="1090" y="179" text-anchor="middle" class="s">Qwen3.5-2B Q4_K_M</text>
+  <text x="1090" y="199" text-anchor="middle" class="x">JSON schema: intent ∈</text>
+  <text x="1090" y="214" text-anchor="middle" class="x">intents valid in this state</text>
+  <text x="1090" y="228" text-anchor="middle" class="x">~320 ms / turn</text>
+  <path class="lp" d="M957,150 L998,150" marker-end="url(#b)"/>
+  <path class="lp" d="M998,190 L959,190" marker-end="url(#b)"/>
+  <text x="978" y="140" text-anchor="middle" class="x">1 call</text>
+  <text x="978" y="252" text-anchor="middle" class="x">{intent, value}</text>
+
+  <rect x="640" y="372" width="330" height="96" rx="12" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="805" y="398" text-anchor="middle" class="t">DialogManager (deterministic)</text>
+  <text x="805" y="418" text-anchor="middle" class="s">state machine · grounding checks · guards</text>
+  <text x="805" y="436" text-anchor="middle" class="x">value must be in the customer's words · cancel needs a 2nd yes</text>
+  <text x="805" y="452" text-anchor="middle" class="x">new address read back before saving · templated replies</text>
+  <path class="ln" d="M894,320 L894,370" marker-end="url(#a)"/>
+  <path class="ln" d="M860,370 L860,322" marker-end="url(#a)"/>
+  <text x="900" y="350" class="x">intent</text>
+  <text x="808" y="350" class="x">reply</text>
+
+  <rect x="640" y="490" width="330" height="52" rx="10" fill="#eef2ff" stroke="#4f46e5"/>
+  <text x="805" y="512" text-anchor="middle" class="t">CallSession tools</text>
+  <text x="805" y="530" text-anchor="middle" class="x">check_slot · confirm_booking · add_item · resolve_shortage …</text>
+  <path class="ln" d="M805,468 L805,488" marker-end="url(#a)"/>
+
+  <rect x="640" y="562" width="330" height="52" rx="10" fill="#eef2ff" stroke="#4f46e5"/>
+  <text x="805" y="584" text-anchor="middle" class="t">Domain services</text>
+  <text x="805" y="602" text-anchor="middle" class="x">inventory · scheduling (5-min holds) · orders · time parser</text>
+  <path class="ln" d="M805,542 L805,560" marker-end="url(#a)"/>
+
+  <!-- database -->
+  <path d="M640,640 a165,12 0 0,0 330,0 v48 a165,12 0 0,1 -330,0 z" fill="#fefce8" stroke="#ca8a04" stroke-width="1.5"/>
+  <ellipse cx="805" cy="640" rx="165" ry="12" fill="#fef9c3" stroke="#ca8a04" stroke-width="1.5"/>
+  <text x="805" y="672" text-anchor="middle" class="t">SQLite</text>
+  <text x="805" y="690" text-anchor="middle" class="x">orders · stock · slots · holds · calls · turn_metrics</text>
+  <path class="ln" d="M805,614 L805,626" marker-end="url(#a)"/>
+
+  <!-- observers + dashboard -->
+  <rect x="215" y="372" width="360" height="96" rx="12" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="395" y="398" text-anchor="middle" class="t">Observers → CallRecorder</text>
+  <text x="395" y="418" text-anchor="middle" class="s">per-turn latency breakdown (Pipecat)</text>
+  <text x="395" y="436" text-anchor="middle" class="s">barge-in timing · outcome · transcript</text>
+  <text x="395" y="454" text-anchor="middle" class="x">watch every frame in the pipeline</text>
+  <path class="ln" d="M395,340 L395,370" marker-end="url(#a)" stroke-dasharray="3 3"/>
+  <path class="ln" d="M575,440 C620,440 600,650 638,655" marker-end="url(#a)"/>
+
+  <rect x="215" y="562" width="360" height="80" rx="12" fill="#f1f5f9" stroke="#64748b"/>
+  <text x="395" y="590" text-anchor="middle" class="t">Dashboard (FastAPI :7861)</text>
+  <text x="395" y="610" text-anchor="middle" class="s">calls · p50/p95 latency · per-turn breakdown</text>
+  <text x="395" y="628" text-anchor="middle" class="x">refreshes every 2 s</text>
+  <path class="ln" d="M638,670 C600,670 610,610 577,605" marker-end="url(#a)"/>
+
+  <!-- legend -->
+  <rect x="20" y="372" width="170" height="140" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="32" y="394" class="h">LEGEND</text>
+  <rect x="32" y="406" width="14" height="14" rx="3" fill="#e0f2fe" stroke="#0284c7"/><text x="54" y="418" class="x">audio in → text</text>
+  <rect x="32" y="428" width="14" height="14" rx="3" fill="#dcfce7" stroke="#16a34a"/><text x="54" y="440" class="x">text → audio out</text>
+  <rect x="32" y="450" width="14" height="14" rx="3" fill="#f5f3ff" stroke="#7c3aed"/><text x="54" y="462" class="x">dialog (deterministic)</text>
+  <rect x="32" y="472" width="14" height="14" rx="3" fill="#fff7ed" stroke="#ea580c"/><text x="54" y="484" class="x">the only LLM</text>
+  <rect x="32" y="494" width="14" height="14" rx="3" fill="#eef2ff" stroke="#4f46e5"/><text x="54" y="506" class="x">business rules</text>
+</svg>

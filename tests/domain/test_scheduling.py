@@ -131,3 +131,10 @@ def test_shared_repository_threads_cannot_double_hold_last_seat(sched, repo, wor
     for t in threads:
         t.join()
     assert sorted(results.values()) == [False, True]
+
+
+def test_confirm_rejects_hold_made_before_wait_restock(sched, inv, repo, world, now):
+    assert sched.hold_slot(1, world["slots"][(0, 12)], now) is True  # today noon, before the bread restock
+    inv.wait_restock(1, "BREAD1")  # restock is tomorrow 9 AM
+    assert sched.confirm_booking(1, now) is None
+    assert repo.get_slot(world["slots"][(0, 12)]).booked == 0

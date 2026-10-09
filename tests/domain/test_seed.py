@@ -39,3 +39,10 @@ def test_seed_invariants(now):
     assert q("SELECT COUNT(*) FROM order_lines WHERE reserved_qty < qty") >= 10
     assert q("SELECT COUNT(*) FROM delivery_slots WHERE booked = capacity") >= 5
     assert q("SELECT COUNT(*) FROM stock WHERE on_hand = 0 AND restock_eta IS NOT NULL") >= 5
+
+
+def test_seed_has_a_week_of_slots(now):
+    r = _fresh()
+    generate_world(r, now, seed=7)
+    days = r.conn.execute("SELECT COUNT(DISTINCT substr(start_ts, 1, 10)) FROM delivery_slots").fetchone()[0]
+    assert days == 7

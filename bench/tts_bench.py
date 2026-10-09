@@ -8,7 +8,7 @@ from bench.common import GpuMemorySampler, first_clause_end, summarize, write_re
 from bench.tts_engine import load_kokoro
 
 REPLIES = [
-    "Hi, this is Asha calling from QuickMart about your grocery order. Am I speaking with Priya?",
+    "Hi, this is Avio calling from AvioStack about your grocery order. Am I speaking with Priya?",
     "Great, thanks. Your order has two Amul milk packets, eggs, and brown bread.",
     "The brown bread is out of stock today, but I can send whole wheat bread instead.",
     "Sure, I have a slot tomorrow between five and six in the evening. Shall I book it?",

@@ -86,12 +86,14 @@ class InventoryService:
                 continue
             product = self.repo.get_product(line.sku)
             missing = line.qty - line.reserved_qty
-            substitutes = [
-                self._match(order.warehouse_id, p, 1.0)
+            candidates = [
+                self._match(order.warehouse_id, p, _score(product.spoken_name, p))
                 for p in self.repo.list_products()
                 if p.category == product.category and p.sku != product.sku
                 and self.repo.available_stock(order.warehouse_id, p.sku) >= missing
-            ][:2]
+            ]
+            # closest product first: "Lays salted peanuts" -> "Haldiram salted peanuts" before potato chips
+            substitutes = sorted(candidates, key=lambda m: (-m.score, m.sku))[:2]
             out.append(Shortage(line.sku, product.spoken_name, line.qty, line.reserved_qty,
                                 self.repo.restock_eta(order.warehouse_id, line.sku), substitutes))
         return out

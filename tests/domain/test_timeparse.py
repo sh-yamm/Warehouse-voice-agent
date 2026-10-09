@@ -76,3 +76,8 @@ def test_same_weekday_after_close_is_next_week():
 def test_today_after_window_passed_is_none():
     late = datetime(2026, 10, 12, 15, 0)
     assert parse_time_window("today morning", late) is None
+
+
+def test_ordinal_one_is_not_a_time():
+    assert parse_time_window("the second one", NOW) is None
+    assert parse_time_window("the later one", NOW) is None
