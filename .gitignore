@@ -16,3 +16,6 @@ models/
 *.sqlite
 runs/
 *.jsonl
+data/
+tools/
+bench/corpus/wav/

@@ -1,0 +1,422 @@
+{
+  "name": "turn_smart-turn-v3.2",
+  "device": "CPUExecutionProvider",
+  "recorded_at": "2026-10-09T08:25:07",
+  "machine": "Shyam-PC",
+  "model": "smart-turn-v3.2-cpu",
+  "latency_ms": {
+    "n": 65,
+    "p50": 61.1,
+    "p95": 144.9,
+    "mean": 75.9,
+    "min": 42.0,
+    "max": 198.2
+  },
+  "overall": {
+    "accuracy": 0.769,
+    "complete_recall": 0.98,
+    "incomplete_recall": 0.067,
+    "n": 65
+  },
+  "by_source": {
+    "tts": {
+      "accuracy": 0.769,
+      "complete_recall": 0.98,
+      "incomplete_recall": 0.067,
+      "n": 65
+    }
+  },
+  "note": "TTS clips are read with finished-sentence prosody; trust the 'human' scores for incomplete turns.",
+  "clips": [
+    {
+      "id": "c01",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9854
+    },
+    {
+      "id": "c02",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9801
+    },
+    {
+      "id": "c03",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.966
+    },
+    {
+      "id": "c04",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9673
+    },
+    {
+      "id": "c05",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.0281
+    },
+    {
+      "id": "c06",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9843
+    },
+    {
+      "id": "c07",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9865
+    },
+    {
+      "id": "c08",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9647
+    },
+    {
+      "id": "c09",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.983
+    },
+    {
+      "id": "c10",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9885
+    },
+    {
+      "id": "c11",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9557
+    },
+    {
+      "id": "c12",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9768
+    },
+    {
+      "id": "c13",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9865
+    },
+    {
+      "id": "c14",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9823
+    },
+    {
+      "id": "c15",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9816
+    },
+    {
+      "id": "c16",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.974
+    },
+    {
+      "id": "c17",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9836
+    },
+    {
+      "id": "c18",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9854
+    },
+    {
+      "id": "c19",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9076
+    },
+    {
+      "id": "c20",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9605
+    },
+    {
+      "id": "c21",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9865
+    },
+    {
+      "id": "c22",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.974
+    },
+    {
+      "id": "c23",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9843
+    },
+    {
+      "id": "c24",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9634
+    },
+    {
+      "id": "c25",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9759
+    },
+    {
+      "id": "c26",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9854
+    },
+    {
+      "id": "c27",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.975
+    },
+    {
+      "id": "c28",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.8732
+    },
+    {
+      "id": "c29",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9843
+    },
+    {
+      "id": "c30",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9865
+    },
+    {
+      "id": "c31",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.983
+    },
+    {
+      "id": "c32",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.954
+    },
+    {
+      "id": "c33",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9849
+    },
+    {
+      "id": "c34",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9823
+    },
+    {
+      "id": "c35",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9854
+    },
+    {
+      "id": "c36",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.966
+    },
+    {
+      "id": "c37",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9865
+    },
+    {
+      "id": "c38",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9836
+    },
+    {
+      "id": "c39",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.986
+    },
+    {
+      "id": "c40",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9759
+    },
+    {
+      "id": "c41",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9777
+    },
+    {
+      "id": "c42",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9777
+    },
+    {
+      "id": "c43",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9777
+    },
+    {
+      "id": "c44",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9381
+    },
+    {
+      "id": "c45",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9425
+    },
+    {
+      "id": "c46",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9768
+    },
+    {
+      "id": "c47",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9823
+    },
+    {
+      "id": "c48",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9574
+    },
+    {
+      "id": "c49",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9816
+    },
+    {
+      "id": "c50",
+      "source": "tts",
+      "label": "complete",
+      "prob": 0.9854
+    },
+    {
+      "id": "i01",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9505
+    },
+    {
+      "id": "i02",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.728
+    },
+    {
+      "id": "i03",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9768
+    },
+    {
+      "id": "i04",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.272
+    },
+    {
+      "id": "i05",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.7581
+    },
+    {
+      "id": "i06",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.5491
+    },
+    {
+      "id": "i07",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9381
+    },
+    {
+      "id": "i08",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9849
+    },
+    {
+      "id": "i09",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9589
+    },
+    {
+      "id": "i10",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.728
+    },
+    {
+      "id": "i11",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9816
+    },
+    {
+      "id": "i12",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9843
+    },
+    {
+      "id": "i13",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9794
+    },
+    {
+      "id": "i14",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.8643
+    },
+    {
+      "id": "i15",
+      "source": "tts",
+      "label": "incomplete",
+      "prob": 0.9849
+    }
+  ]
+}

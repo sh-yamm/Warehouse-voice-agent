@@ -1,0 +1,551 @@
+{
+  "name": "stt_parakeet-cpu",
+  "device": "cpu",
+  "recorded_at": "2026-10-09T08:14:36",
+  "machine": "Shyam-PC",
+  "engine": "parakeet-cpu",
+  "wer_all": 0.0355,
+  "wer_by_source": {
+    "tts": 0.0355
+  },
+  "post_speech_ms": {
+    "n": 65,
+    "p50": 399.8,
+    "p95": 606.7,
+    "mean": 420.5,
+    "min": 233.4,
+    "max": 737.4
+  },
+  "rtf": {
+    "n": 65,
+    "p50": 0.2,
+    "p95": 0.2,
+    "mean": 0.2,
+    "min": 0.1,
+    "max": 0.3
+  },
+  "clips": [
+    {
+      "id": "c01",
+      "source": "tts",
+      "ref": "Yes, this is Priya speaking.",
+      "hyp": "Yes, this is Preya speaking.",
+      "post_speech_ms": 319.1,
+      "rtf": 0.152
+    },
+    {
+      "id": "c02",
+      "source": "tts",
+      "ref": "Yeah, that's me.",
+      "hyp": "Yeah, that's me.",
+      "post_speech_ms": 320.6,
+      "rtf": 0.201
+    },
+    {
+      "id": "c03",
+      "source": "tts",
+      "ref": "No, you have the wrong number.",
+      "hyp": "No, you have the wrong number.",
+      "post_speech_ms": 424.0,
+      "rtf": 0.212
+    },
+    {
+      "id": "c04",
+      "source": "tts",
+      "ref": "She's not home right now, can you call back later?",
+      "hyp": "She's not home right now, can you call back later?",
+      "post_speech_ms": 606.7,
+      "rtf": 0.173
+    },
+    {
+      "id": "c05",
+      "source": "tts",
+      "ref": "Can you deliver it tomorrow after 5 p.m.?",
+      "hyp": "Can you deliver it tomorrow after 5 p.m.?",
+      "post_speech_ms": 547.1,
+      "rtf": 0.175
+    },
+    {
+      "id": "c06",
+      "source": "tts",
+      "ref": "Tomorrow evening works for me.",
+      "hyp": "Tomorrow evening works for me.",
+      "post_speech_ms": 471.4,
+      "rtf": 0.191
+    },
+    {
+      "id": "c07",
+      "source": "tts",
+      "ref": "Is it possible to get it between 2 and 4 tomorrow?",
+      "hyp": "Is it possible to get it between two and four tomorrow?",
+      "post_speech_ms": 580.9,
+      "rtf": 0.186
+    },
+    {
+      "id": "c08",
+      "source": "tts",
+      "ref": "Any time after 6 is fine.",
+      "hyp": "Any time after six is fine.",
+      "post_speech_ms": 470.5,
+      "rtf": 0.177
+    },
+    {
+      "id": "c09",
+      "source": "tts",
+      "ref": "I'd prefer the morning, around 10.",
+      "hyp": "I'd prefer the morning, around 10.",
+      "post_speech_ms": 414.2,
+      "rtf": 0.179
+    },
+    {
+      "id": "c10",
+      "source": "tts",
+      "ref": "Can you do Friday afternoon instead?",
+      "hyp": "Can you do Friday afternoon instead?",
+      "post_speech_ms": 498.4,
+      "rtf": 0.173
+    },
+    {
+      "id": "c11",
+      "source": "tts",
+      "ref": "Not today, I'm at work until 7.",
+      "hyp": "Not today, I'm at work until seven.",
+      "post_speech_ms": 494.9,
+      "rtf": 0.194
+    },
+    {
+      "id": "c12",
+      "source": "tts",
+      "ref": "Okay, 6 to 7 works.",
+      "hyp": "Okay, six to seven works.",
+      "post_speech_ms": 461.1,
+      "rtf": 0.182
+    },
+    {
+      "id": "c13",
+      "source": "tts",
+      "ref": "Yes, please confirm that.",
+      "hyp": "Yes, please confirm that.",
+      "post_speech_ms": 372.9,
+      "rtf": 0.193
+    },
+    {
+      "id": "c14",
+      "source": "tts",
+      "ref": "No, change the time please.",
+      "hyp": "No change the time, please.",
+      "post_speech_ms": 389.9,
+      "rtf": 0.181
+    },
+    {
+      "id": "c15",
+      "source": "tts",
+      "ref": "Actually, deliver it to my office instead.",
+      "hyp": "Actually deliver it to my office instead.",
+      "post_speech_ms": 493.0,
+      "rtf": 0.174
+    },
+    {
+      "id": "c16",
+      "source": "tts",
+      "ref": "My new address is 42 Church Street, Bengaluru.",
+      "hyp": "My new address is 42 Church Street, Bengaluru.",
+      "post_speech_ms": 737.4,
+      "rtf": 0.178
+    },
+    {
+      "id": "c17",
+      "source": "tts",
+      "ref": "Please leave it with the security guard.",
+      "hyp": "Please leave it with a security guard.",
+      "post_speech_ms": 455.9,
+      "rtf": 0.183
+    },
+    {
+      "id": "c18",
+      "source": "tts",
+      "ref": "Call me when you reach the gate.",
+      "hyp": "Call me when you reach the gate.",
+      "post_speech_ms": 387.7,
+      "rtf": 0.182
+    },
+    {
+      "id": "c19",
+      "source": "tts",
+      "ref": "I want to cancel the order.",
+      "hyp": "I want to cancel the order.",
+      "post_speech_ms": 589.4,
+      "rtf": 0.292
+    },
+    {
+      "id": "c20",
+      "source": "tts",
+      "ref": "Please cancel it, I don't need it anymore.",
+      "hyp": "Please cancel it, I don't need it anymore.",
+      "post_speech_ms": 523.3,
+      "rtf": 0.168
+    },
+    {
+      "id": "c21",
+      "source": "tts",
+      "ref": "Can you also add two packets of Amul milk?",
+      "hyp": "Can you also add two packets of ammo milk?",
+      "post_speech_ms": 568.1,
+      "rtf": 0.213
+    },
+    {
+      "id": "c22",
+      "source": "tts",
+      "ref": "Add one dozen bananas as well.",
+      "hyp": "Add one dozen bananas as well.",
+      "post_speech_ms": 543.4,
+      "rtf": 0.204
+    },
+    {
+      "id": "c23",
+      "source": "tts",
+      "ref": "Do you have Tata salt in stock?",
+      "hyp": "Do you have tartar salt in stock?",
+      "post_speech_ms": 446.9,
+      "rtf": 0.194
+    },
+    {
+      "id": "c24",
+      "source": "tts",
+      "ref": "If the bread is not available, send whole wheat instead.",
+      "hyp": "If the bread is not available, send whole wheat instead.",
+      "post_speech_ms": 688.8,
+      "rtf": 0.173
+    },
+    {
+      "id": "c25",
+      "source": "tts",
+      "ref": "Just send whatever is available.",
+      "hyp": "Just send whatever is available.",
+      "post_speech_ms": 472.6,
+      "rtf": 0.214
+    },
+    {
+      "id": "c26",
+      "source": "tts",
+      "ref": "I'll wait for the rice to come back in stock.",
+      "hyp": "I'll wait for the rice to come back in stock.",
+      "post_speech_ms": 606.8,
+      "rtf": 0.207
+    },
+    {
+      "id": "c27",
+      "source": "tts",
+      "ref": "Skip the eggs then.",
+      "hyp": "Skip the eggs then.",
+      "post_speech_ms": 498.2,
+      "rtf": 0.279
+    },
+    {
+      "id": "c28",
+      "source": "tts",
+      "ref": "How much is the total?",
+      "hyp": "How much is the total?",
+      "post_speech_ms": 449.5,
+      "rtf": 0.196
+    },
+    {
+      "id": "c29",
+      "source": "tts",
+      "ref": "Can you call me back in an hour?",
+      "hyp": "Can you call me back in an hour?",
+      "post_speech_ms": 387.0,
+      "rtf": 0.196
+    },
+    {
+      "id": "c30",
+      "source": "tts",
+      "ref": "I'm driving right now, call me later.",
+      "hyp": "I'm driving right now. Call me later.",
+      "post_speech_ms": 522.4,
+      "rtf": 0.178
+    },
+    {
+      "id": "c31",
+      "source": "tts",
+      "ref": "Yes, that sounds good.",
+      "hyp": "Yes, that sounds good.",
+      "post_speech_ms": 399.8,
+      "rtf": 0.214
+    },
+    {
+      "id": "c32",
+      "source": "tts",
+      "ref": "That's all, thank you.",
+      "hyp": "That's all, thank you.",
+      "post_speech_ms": 408.6,
+      "rtf": 0.211
+    },
+    {
+      "id": "c33",
+      "source": "tts",
+      "ref": "Sorry, can you repeat that?",
+      "hyp": "Sorry, can you repeat that?",
+      "post_speech_ms": 388.3,
+      "rtf": 0.196
+    },
+    {
+      "id": "c34",
+      "source": "tts",
+      "ref": "What time slots do you have?",
+      "hyp": "What time slots do you have?",
+      "post_speech_ms": 411.1,
+      "rtf": 0.188
+    },
+    {
+      "id": "c35",
+      "source": "tts",
+      "ref": "Is there anything earlier?",
+      "hyp": "Is there anything earlier?",
+      "post_speech_ms": 383.6,
+      "rtf": 0.194
+    },
+    {
+      "id": "c36",
+      "source": "tts",
+      "ref": "The day after tomorrow at 11 would be better.",
+      "hyp": "The day after to morrow, at eleven, would be better.",
+      "post_speech_ms": 531.9,
+      "rtf": 0.141
+    },
+    {
+      "id": "c37",
+      "source": "tts",
+      "ref": "Before noon, if possible.",
+      "hyp": "before noon if possible.",
+      "post_speech_ms": 378.7,
+      "rtf": 0.189
+    },
+    {
+      "id": "c38",
+      "source": "tts",
+      "ref": "As soon as possible please.",
+      "hyp": "As soon as possible please.",
+      "post_speech_ms": 389.7,
+      "rtf": 0.165
+    },
+    {
+      "id": "c39",
+      "source": "tts",
+      "ref": "Half past five is perfect.",
+      "hyp": "Half past five is perfect.",
+      "post_speech_ms": 416.3,
+      "rtf": 0.183
+    },
+    {
+      "id": "c40",
+      "source": "tts",
+      "ref": "Make it the 7 to 8 slot.",
+      "hyp": "Make it the 7-8 slot.",
+      "post_speech_ms": 379.1,
+      "rtf": 0.155
+    },
+    {
+      "id": "c41",
+      "source": "tts",
+      "ref": "No, the flat number is 304, not 403.",
+      "hyp": "No, the flat number is 304, not 403.",
+      "post_speech_ms": 544.4,
+      "rtf": 0.131
+    },
+    {
+      "id": "c42",
+      "source": "tts",
+      "ref": "It's B block, third floor.",
+      "hyp": "It's B block third floor.",
+      "post_speech_ms": 369.6,
+      "rtf": 0.161
+    },
+    {
+      "id": "c43",
+      "source": "tts",
+      "ref": "Can the delivery person bring change for 500?",
+      "hyp": "Can the delivery person bring change for five hundred?",
+      "post_speech_ms": 494.3,
+      "rtf": 0.157
+    },
+    {
+      "id": "c44",
+      "source": "tts",
+      "ref": "Okay, go ahead.",
+      "hyp": "Okay, go ahead.",
+      "post_speech_ms": 297.5,
+      "rtf": 0.159
+    },
+    {
+      "id": "c45",
+      "source": "tts",
+      "ref": "Mm-hmm.",
+      "hyp": "Mhum.",
+      "post_speech_ms": 233.9,
+      "rtf": 0.19
+    },
+    {
+      "id": "c46",
+      "source": "tts",
+      "ref": "Sure.",
+      "hyp": "Sure.",
+      "post_speech_ms": 240.7,
+      "rtf": 0.214
+    },
+    {
+      "id": "c47",
+      "source": "tts",
+      "ref": "Nope.",
+      "hyp": "Nope.",
+      "post_speech_ms": 266.8,
+      "rtf": 0.22
+    },
+    {
+      "id": "c48",
+      "source": "tts",
+      "ref": "Wait, which order is this?",
+      "hyp": "Wait which order is this?",
+      "post_speech_ms": 383.1,
+      "rtf": 0.173
+    },
+    {
+      "id": "c49",
+      "source": "tts",
+      "ref": "I already received it yesterday.",
+      "hyp": "I already received it yesterday.",
+      "post_speech_ms": 494.8,
+      "rtf": 0.228
+    },
+    {
+      "id": "c50",
+      "source": "tts",
+      "ref": "Can you send it with the substitute instead?",
+      "hyp": "can you send it with a substitute instead?",
+      "post_speech_ms": 597.1,
+      "rtf": 0.196
+    },
+    {
+      "id": "i01",
+      "source": "tts",
+      "ref": "Can you deliver it after",
+      "hyp": "Can you deliver it after?",
+      "post_speech_ms": 356.1,
+      "rtf": 0.18
+    },
+    {
+      "id": "i02",
+      "source": "tts",
+      "ref": "My address is",
+      "hyp": "My address is",
+      "post_speech_ms": 288.6,
+      "rtf": 0.154
+    },
+    {
+      "id": "i03",
+      "source": "tts",
+      "ref": "Actually I was thinking maybe",
+      "hyp": "Actually I was thinking maybe.",
+      "post_speech_ms": 335.1,
+      "rtf": 0.158
+    },
+    {
+      "id": "i04",
+      "source": "tts",
+      "ref": "Tomorrow would be fine but",
+      "hyp": "Tomorrow would be fine, but",
+      "post_speech_ms": 335.3,
+      "rtf": 0.156
+    },
+    {
+      "id": "i05",
+      "source": "tts",
+      "ref": "I want to add",
+      "hyp": "I want to add.",
+      "post_speech_ms": 274.7,
+      "rtf": 0.172
+    },
+    {
+      "id": "i06",
+      "source": "tts",
+      "ref": "Leave it with the",
+      "hyp": "Leave it with though.",
+      "post_speech_ms": 278.3,
+      "rtf": 0.17
+    },
+    {
+      "id": "i07",
+      "source": "tts",
+      "ref": "The flat number is",
+      "hyp": "The flat number is",
+      "post_speech_ms": 294.4,
+      "rtf": 0.19
+    },
+    {
+      "id": "i08",
+      "source": "tts",
+      "ref": "Can you make it around",
+      "hyp": "Can you make it around?",
+      "post_speech_ms": 353.3,
+      "rtf": 0.177
+    },
+    {
+      "id": "i09",
+      "source": "tts",
+      "ref": "No wait, I meant",
+      "hyp": "No wait I meant.",
+      "post_speech_ms": 312.4,
+      "rtf": 0.181
+    },
+    {
+      "id": "i10",
+      "source": "tts",
+      "ref": "Between four and",
+      "hyp": "Between four and",
+      "post_speech_ms": 305.1,
+      "rtf": 0.154
+    },
+    {
+      "id": "i11",
+      "source": "tts",
+      "ref": "If the bread is not available then",
+      "hyp": "If the bread is not available then,",
+      "post_speech_ms": 365.8,
+      "rtf": 0.162
+    },
+    {
+      "id": "i12",
+      "source": "tts",
+      "ref": "I'll be home after",
+      "hyp": "I'll be home after.",
+      "post_speech_ms": 281.9,
+      "rtf": 0.149
+    },
+    {
+      "id": "i13",
+      "source": "tts",
+      "ref": "Could you also check if",
+      "hyp": "Could you also check if",
+      "post_speech_ms": 277.6,
+      "rtf": 0.148
+    },
+    {
+      "id": "i14",
+      "source": "tts",
+      "ref": "So the time is",
+      "hyp": "So the time is",
+      "post_speech_ms": 289.1,
+      "rtf": 0.166
+    },
+    {
+      "id": "i15",
+      "source": "tts",
+      "ref": "Yes but only if",
+      "hyp": "Yes, but only if.",
+      "post_speech_ms": 233.4,
+      "rtf": 0.15
+    }
+  ],
+  "vram_delta_mb": 13,
+  "streaming_latency_ms": null
+}
