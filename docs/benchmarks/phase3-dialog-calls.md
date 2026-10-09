@@ -120,3 +120,14 @@ The final review found these. Each fix has a regression test.
 - **Latency: 17 responses, p50 841 ms, p95 1,757 ms.** Across the two runs with the current pipeline, the p50 is **735–841 ms**.
 - **The slow turns (~1.7 s) are short answers** that Smart Turn judged incomplete. They wait out the 1.2 s silence fallback.
 - **Next latency lever:** release the turn right away when the dialog state expects a short answer and the transcript is one ("yes", "no", "book it").
+
+## Live call with a human voice (2026-10-10)
+
+- **The call:** browser and laptop microphone, order 2. Median reply **871 ms**.
+- **The bug it found:** speech recognition misheard three address attempts ("No. in standard.", "Change the audience.", "She used that as to 21st."). Each was grounded (the words *were* "said") and long enough, so each **overwrote the delivery address**.
+- **Fix:** an address change is now read back ("Just to check, the new address is X. Is that right?") and saved only after a non-negated yes. A "no" keeps the old address. Covered by `test_misheard_address_is_never_saved_without_a_yes` and `test_negated_yes_does_not_save_address`.
+
+## Demo call (recorded, `docs/demo/demo-call.mp3`)
+
+- **The call:** order 5, a substitute offered (now ranked by name similarity), a slot held, the address changed and confirmed, a driver note, booked.
+- **Latency:** 8 replies, median **756 ms**, max 998 ms. The greeting started 84 ms after connect.

@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="470" viewBox="0 0 1200 470" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <style>
+      .n { fill: #f5f3ff; stroke: #7c3aed; stroke-width: 1.6; }
+      .e { fill: #f0fdf4; stroke: #16a34a; stroke-width: 1.6; }
+      .g { fill: #fff7ed; stroke: #ea580c; stroke-width: 1.6; }
+      .r { fill: #fef2f2; stroke: #dc2626; stroke-width: 1.6; }
+      .t { font-size: 14px; font-weight: 700; fill: #0f172a; }
+      .q { font-size: 11px; fill: #475569; }
+      .l { font-size: 11px; fill: #334155; }
+      .ln { stroke: #475569; stroke-width: 1.5; fill: none; }
+    </style>
+  </defs>
+  <rect width="1200" height="470" fill="#ffffff"/>
+  <text x="600" y="30" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Dialog state machine (DialogManager)</text>
+  <text x="600" y="50" text-anchor="middle" font-size="12" fill="#64748b">Each state lists the intents the LLM may return. Global intents in every state: add_item · callback · cancel · question · unclear</text>
+
+  <!-- main flow -->
+  <rect class="n" x="20" y="90" width="150" height="74" rx="12"/>
+  <text x="95" y="116" text-anchor="middle" class="t">greet</text>
+  <text x="95" y="136" text-anchor="middle" class="q">"Am I speaking</text>
+  <text x="95" y="151" text-anchor="middle" class="q">with Arjun?"</text>
+
+  <rect class="n" x="215" y="90" width="150" height="74" rx="12"/>
+  <text x="290" y="116" text-anchor="middle" class="t">shortage</text>
+  <text x="290" y="136" text-anchor="middle" class="q">substitute / rest</text>
+  <text x="290" y="151" text-anchor="middle" class="q">without it / wait?</text>
+
+  <rect class="n" x="410" y="90" width="150" height="74" rx="12"/>
+  <text x="485" y="116" text-anchor="middle" class="t">schedule</text>
+  <text x="485" y="136" text-anchor="middle" class="q">time → hold slot</text>
+  <text x="485" y="151" text-anchor="middle" class="q">or list alternatives</text>
+
+  <rect class="n" x="605" y="90" width="150" height="74" rx="12"/>
+  <text x="680" y="116" text-anchor="middle" class="t">address</text>
+  <text x="680" y="136" text-anchor="middle" class="q">"Should we deliver</text>
+  <text x="680" y="151" text-anchor="middle" class="q">to {address}?"</text>
+
+  <rect class="n" x="800" y="90" width="150" height="74" rx="12"/>
+  <text x="875" y="116" text-anchor="middle" class="t">note</text>
+  <text x="875" y="136" text-anchor="middle" class="q">"Any instructions</text>
+  <text x="875" y="151" text-anchor="middle" class="q">for the driver?"</text>
+
+  <rect class="n" x="995" y="90" width="150" height="74" rx="12"/>
+  <text x="1070" y="116" text-anchor="middle" class="t">confirm</text>
+  <text x="1070" y="136" text-anchor="middle" class="q">read back items, slot,</text>
+  <text x="1070" y="151" text-anchor="middle" class="q">address: "book it?"</text>
+
+  <path class="ln" d="M170,127 L213,127" marker-end="url(#a)"/>
+  <text x="191" y="118" text-anchor="middle" class="l">confirm</text>
+  <path class="ln" d="M365,127 L408,127" marker-end="url(#a)"/>
+  <text x="387" y="118" text-anchor="middle" class="l">resolved</text>
+  <path class="ln" d="M560,127 L603,127" marker-end="url(#a)"/>
+  <text x="582" y="118" text-anchor="middle" class="l">agreed</text>
+  <path class="ln" d="M755,127 L798,127" marker-end="url(#a)"/>
+  <text x="777" y="118" text-anchor="middle" class="l">ok</text>
+  <path class="ln" d="M950,127 L993,127" marker-end="url(#a)"/>
+  <text x="972" y="118" text-anchor="middle" class="l">done</text>
+  <!-- greet skips shortage -->
+  <path class="ln" d="M95,90 C95,70 485,70 485,88" marker-end="url(#a)"/>
+  <text x="290" y="64" text-anchor="middle" class="l">confirm, nothing out of stock</text>
+  <!-- confirm back to schedule -->
+  <path class="ln" d="M1070,164 C1070,215 485,215 485,166" marker-end="url(#a)"/>
+  <text x="780" y="210" text-anchor="middle" class="l">new time, or hold expired → schedule (returns straight to read-back)</text>
+
+  <!-- booked -->
+  <rect class="e" x="1030" y="250" width="150" height="60" rx="12"/>
+  <text x="1105" y="276" text-anchor="middle" class="t">closed: booked</text>
+  <text x="1105" y="295" text-anchor="middle" class="q">confirm_booking()</text>
+  <path class="ln" d="M1120,164 L1120,248" marker-end="url(#a)"/>
+  <text x="1126" y="215" class="l">yes</text>
+
+  <!-- confirm_address -->
+  <rect class="g" x="700" y="260" width="200" height="74" rx="12"/>
+  <text x="800" y="286" text-anchor="middle" class="t">confirm_address</text>
+  <text x="800" y="306" text-anchor="middle" class="q">"Just to check, the new</text>
+  <text x="800" y="321" text-anchor="middle" class="q">address is X. Is that right?"</text>
+  <path class="ln" d="M660,164 C660,240 720,240 735,258" marker-end="url(#a)"/>
+  <text x="640" y="245" class="l">change_address</text>
+  <path class="ln" d="M865,258 C875,230 875,200 875,166" marker-end="url(#a)"/>
+  <text x="882" y="245" class="l">yes → saved</text>
+
+  <!-- confirm_cancel -->
+  <rect class="g" x="330" y="260" width="200" height="74" rx="12"/>
+  <text x="430" y="286" text-anchor="middle" class="t">confirm_cancel</text>
+  <text x="430" y="306" text-anchor="middle" class="q">"Just to confirm, cancel</text>
+  <text x="430" y="321" text-anchor="middle" class="q">the whole order?"</text>
+  <path class="ln" d="M470,164 C470,220 450,230 445,258" marker-end="url(#a)"/>
+  <text x="472" y="240" class="l">cancel (any state)</text>
+  <path class="ln" d="M380,258 C370,215 380,190 395,166" marker-end="url(#a)"/>
+  <text x="300" y="232" class="l">no → back</text>
+
+  <!-- end states -->
+  <rect class="r" x="330" y="380" width="200" height="56" rx="12"/>
+  <text x="430" y="404" text-anchor="middle" class="t">closed: cancelled</text>
+  <text x="430" y="423" text-anchor="middle" class="q">only after a non-negated yes</text>
+  <path class="ln" d="M430,334 L430,378" marker-end="url(#a)"/>
+  <text x="436" y="360" class="l">yes</text>
+
+  <rect class="r" x="20" y="260" width="200" height="56" rx="12"/>
+  <text x="120" y="284" text-anchor="middle" class="t">closed: wrong person</text>
+  <text x="120" y="303" text-anchor="middle" class="q">noted, call back later</text>
+  <path class="ln" d="M70,164 L70,258" marker-end="url(#a)"/>
+  <text x="76" y="215" class="l">no / not me</text>
+
+  <rect class="r" x="20" y="380" width="200" height="56" rx="12"/>
+  <text x="120" y="404" text-anchor="middle" class="t">closed: callback</text>
+  <text x="120" y="423" text-anchor="middle" class="q">needs a "later / busy" cue</text>
+  <path class="ln" d="M160,164 C250,210 255,380 222,400" marker-end="url(#a)"/>
+  <text x="236" y="350" class="l">callback (any state)</text>
+
+  <!-- legend -->
+  <rect x="960" y="380" width="220" height="70" rx="10" fill="#ffffff" stroke="#e2e8f0"/>
+  <rect x="972" y="392" width="12" height="12" rx="3" class="n"/><text x="992" y="402" class="l">asks and waits</text>
+  <rect x="972" y="412" width="12" height="12" rx="3" class="g"/><text x="992" y="422" class="l">safety confirmation step</text>
+  <rect x="972" y="432" width="12" height="12" rx="3" class="r"/><text x="992" y="442" class="l">call ends</text>
+</svg>

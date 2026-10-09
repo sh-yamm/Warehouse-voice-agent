@@ -27,6 +27,7 @@ class ScriptedSpeaker(MediaStreamTrack):
     def __init__(self, cues: list[tuple[float, np.ndarray, str]]):
         super().__init__()
         self.cues, self.t0, self.pts, self.queue = cues, None, 0, np.zeros(0, np.int16)
+        self.spoken: list[tuple[float, np.ndarray]] = []  # (wall-clock start, pcm) of each customer line
 
     async def recv(self):
         if self.t0 is None:
@@ -35,6 +36,7 @@ class ScriptedSpeaker(MediaStreamTrack):
         now = time.time() - self.t0
         while self.cues and self.cues[0][0] <= now:
             _, pcm, text = self.cues.pop(0)
+            self.spoken.append((time.time() + len(self.queue) / RATE, pcm))
             self.queue = np.concatenate([self.queue, pcm])
             print(f"[{now:6.1f}s] customer: {text}", flush=True)
         chunk, self.queue = self.queue[:FRAME], self.queue[FRAME:]
@@ -57,10 +59,52 @@ def synthesize(lines: list[str]) -> list[np.ndarray]:
     return out
 
 
-async def call(url: str, out: str, duration: float, cues: list[tuple[float, str]]) -> None:
+def to_mono(frame) -> np.ndarray:
+    """WebRTC audio usually arrives as interleaved (packed) stereo; averaging rows would double its length."""
+    samples = frame.to_ndarray().astype(np.float32) / 32768
+    channels = len(frame.layout.channels)
+    if frame.format.is_planar:
+        return samples.mean(axis=0)
+    return samples.reshape(-1, channels).mean(axis=1)
+
+
+def write_mp3(path: str, audio: np.ndarray, rate: int) -> None:
+    pcm = (np.clip(audio, -1, 1) * 32767).astype(np.int16)
+    container = av.open(path, "w")
+    stream = container.add_stream("libmp3lame", rate=rate)
+    stream.layout = "mono"
+    for i in range(0, len(pcm), 1152):
+        frame = av.AudioFrame.from_ndarray(pcm[i:i + 1152].reshape(1, -1), format="s16", layout="mono")
+        frame.sample_rate = rate
+        for packet in stream.encode(frame):
+            container.mux(packet)
+    for packet in stream.encode(None):
+        container.mux(packet)
+    container.close()
+
+
+def mix(received: list[tuple[float, np.ndarray, int]], spoken: list[tuple[float, np.ndarray]],
+        started: float) -> tuple[np.ndarray, int]:
+    """Agent audio as received, customer lines placed at the moment they were sent."""
+    rate = received[0][2]
+    agent = np.concatenate([r[1] for r in received])
+    agent_t0 = started + received[0][0] - len(received[0][1]) / rate
+    track = np.zeros(len(agent) + rate * 10, dtype=np.float32)
+    track[:len(agent)] += agent
+    end = 0
+    for t, pcm in spoken:
+        customer = resample_poly(pcm.astype(np.float32) / 32768, rate, RATE) if rate != RATE else pcm / 32768
+        start = max(int((t - agent_t0) * rate), 0)
+        end = min(start + len(customer), len(track))
+        track[start:end] += customer[:end - start]
+    return track[:max(len(agent), end)], rate
+
+
+async def call(url: str, out: str, duration: float, cues: list[tuple[float, str]], mix_out: str | None = None) -> None:
     pcms = synthesize([text for _, text in cues])
     pc = RTCPeerConnection()
-    pc.addTrack(ScriptedSpeaker([(t, pcm, text) for (t, text), pcm in zip(cues, pcms)]))
+    speaker = ScriptedSpeaker([(t, pcm, text) for (t, text), pcm in zip(cues, pcms)])
+    pc.addTrack(speaker)
     received: list[tuple[float, np.ndarray, int]] = []
     started = time.time()
 
@@ -72,8 +116,7 @@ async def call(url: str, out: str, duration: float, cues: list[tuple[float, str]
                     frame = await track.recv()
                 except Exception:
                     return
-                received.append((time.time() - started, frame.to_ndarray().astype(np.float32).mean(axis=0) / 32768,
-                                 frame.sample_rate))
+                received.append((time.time() - started, to_mono(frame), frame.sample_rate))
         asyncio.ensure_future(pull())
 
     await pc.setLocalDescription(await pc.createOffer())
@@ -88,6 +131,10 @@ async def call(url: str, out: str, duration: float, cues: list[tuple[float, str]
         print("no agent audio received")
         return
     sf.write(out, np.concatenate([r[1] for r in received]), received[0][2])
+    if mix_out:
+        audio, rate = mix(received, speaker.spoken, started)
+        write_mp3(mix_out, audio, rate)
+        print(f"wrote {mix_out} ({len(audio) / rate:.0f} s, both voices)")
     spans, begin = [], None
     for t, audio, _ in received:
         loud = float(np.sqrt(np.mean(audio ** 2))) > 0.01
@@ -104,11 +151,12 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://localhost:7860/api/offer")
     parser.add_argument("--out", default="call.wav")
+    parser.add_argument("--mix-out", help="also write an MP3 with both voices (for demos)")
     parser.add_argument("--duration", type=float, default=120)
     parser.add_argument("cues", nargs="+", help='"seconds:text" spoken by the customer')
     args = parser.parse_args()
     cues = sorted((float(c.split(":", 1)[0]), c.split(":", 1)[1]) for c in args.cues)
-    asyncio.run(call(args.url, args.out, args.duration, cues))
+    asyncio.run(call(args.url, args.out, args.duration, cues, args.mix_out))
 
 
 if __name__ == "__main__":
