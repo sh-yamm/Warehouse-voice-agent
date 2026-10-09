@@ -1,0 +1,25 @@
+{
+  "name": "tts_kokoro-torch",
+  "device": "cuda (torch)",
+  "recorded_at": "2026-10-09T08:24:23",
+  "machine": "Shyam-PC",
+  "model": "kokoro-v1.0-torch",
+  "voice": "af_heart",
+  "first_clause_audio_ms": {
+    "n": 10,
+    "p50": 394.6,
+    "p95": 462.5,
+    "mean": 399.2,
+    "min": 353.2,
+    "max": 462.5
+  },
+  "rtf": {
+    "n": 10,
+    "p50": 0.1,
+    "p95": 0.2,
+    "mean": 0.1,
+    "min": 0.1,
+    "max": 0.2
+  },
+  "vram_delta_mb": 889
+}
