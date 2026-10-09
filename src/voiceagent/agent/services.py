@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import asyncio
 import functools
+import time
 from collections.abc import AsyncGenerator
 
 import numpy as np
 from loguru import logger
 from pipecat.audio.utils import create_stream_resampler
 from pipecat.frames.frames import ErrorFrame, Frame, TTSAudioRawFrame
-from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.services.settings import TTSSettings
 from pipecat.services.tts_service import TTSService
 from pipecat.services.whisper import stt as whisper_stt
@@ -29,19 +29,27 @@ class GreedyWhisperSTTService(whisper_stt.WhisperSTTService):
         import torch  # noqa: F401  (torch/lib ships cublas64_12.dll, which CTranslate2 needs on Windows)
 
         super()._load()
-        self._model.transcribe = functools.partial(
-            self._model.transcribe, beam_size=1, best_of=1, without_timestamps=True,
-            condition_on_previous_text=False,
-        )
+        transcribe = functools.partial(self._model.transcribe, beam_size=1, best_of=1, without_timestamps=True,
+                                       condition_on_previous_text=False)
+
+        def timed_transcribe(audio, **kwargs):
+            started = time.perf_counter()
+            segments, info = transcribe(audio, **kwargs)
+            segments = list(segments)  # decoding is lazy; run it here so the timing is real
+            logger.info(f"whisper decode {(time.perf_counter() - started) * 1000:.0f} ms "
+                        f"for {len(audio) / 16000:.1f} s audio")
+            return segments, info
+
+        self._model.transcribe = timed_transcribe
         # First CUDA decode is slow (kernel/cuBLAS init); pay it at load, not on the customer's first turn.
-        segments, _ = self._model.transcribe(np.zeros(16000, dtype=np.float32), language="en")
-        list(segments)  # decoding is lazy; iterate to actually run it
+        self._model.transcribe(np.zeros(16000, dtype=np.float32), language="en")
 
 
 class KokoroTorchTTSService(TTSService):
     """Kokoro-82M on PyTorch/CUDA: 395 ms first clause vs 612 ms for kokoro-onnx in Phase 1."""
 
-    def __init__(self, *, voice: str = "af_heart", device: str = "cuda", **kwargs):
+    def __init__(self, *, voice: str = "af_heart", device: str = "cuda", cache_phrases: tuple[str, ...] = (),
+                 **kwargs):
         super().__init__(push_start_frame=True, push_stop_frames=True,
                          settings=TTSSettings(model="kokoro-82m", voice=voice, language=Language.EN), **kwargs)
         from kokoro import KModel, KPipeline
@@ -50,9 +58,12 @@ class KokoroTorchTTSService(TTSService):
         model = KModel(repo_id="hexgrad/Kokoro-82M").to(device).eval()
         self._pipeline = KPipeline(lang_code="a", repo_id="hexgrad/Kokoro-82M", model=model)
         self._resampler = create_stream_resampler()
+        self._cache: dict[str, np.ndarray] = {}
         # The first synthesis after loading takes seconds (CUDA init). TTSService gives up on a context after
         # stop_frame_timeout_s (3 s) without audio, which silenced the greeting, so warm up here.
         self._synthesize("Warming up.")
+        for phrase in cache_phrases:
+            self._cache[phrase.strip()] = self._synthesize(phrase)
 
     def can_generate_metrics(self) -> bool:
         return True
@@ -61,10 +72,15 @@ class KokoroTorchTTSService(TTSService):
         chunks = [r.audio.cpu().numpy() for r in self._pipeline(text, voice=self._voice) if r.audio is not None]
         return np.concatenate(chunks) if chunks else np.zeros(0, dtype=np.float32)
 
+    def _audio_for(self, text: str) -> np.ndarray:
+        cached = self._cache.get(text.strip())
+        return cached if cached is not None else self._synthesize(text)
+
     async def run_tts(self, text: str, context_id: str) -> AsyncGenerator[Frame, None]:
         try:
             await self.start_tts_usage_metrics(text)
-            samples = await asyncio.to_thread(self._synthesize, text)
+            cached = self._cache.get(text.strip())
+            samples = cached if cached is not None else await asyncio.to_thread(self._synthesize, text)
             await self.stop_ttfb_metrics()
             if samples.size:
                 audio = await self._resampler.resample(float_to_pcm16(samples), KOKORO_SAMPLE_RATE, self.sample_rate)
@@ -77,15 +93,10 @@ class KokoroTorchTTSService(TTSService):
             await self.stop_ttfb_metrics()
 
 
-def make_llm(base_url: str = "http://127.0.0.1:8080/v1") -> OpenAILLMService:
-    """Qwen3.5-2B (or whatever GGUF llama-server was started with), non-thinking, prompt cache on."""
-    return OpenAILLMService(
-        base_url=base_url,
-        api_key="local",
-        settings=OpenAILLMService.Settings(
-            model="local",
-            temperature=0.3,
-            max_tokens=120,
-            extra={"extra_body": {"cache_prompt": True, "chat_template_kwargs": {"enable_thinking": False}}},
-        ),
-    )
+def make_turn_analyzer():
+    """Smart Turn v3.2 on CPU, warmed up (its first inference took 2.7 s in Phase 2)."""
+    from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
+
+    analyzer = LocalSmartTurnAnalyzerV3(cpu_count=4)
+    analyzer._predict_endpoint(np.zeros(16000 * 2, dtype=np.float32))
+    return analyzer

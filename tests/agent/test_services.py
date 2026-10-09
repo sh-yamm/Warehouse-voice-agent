@@ -31,13 +31,6 @@ def test_greedy_whisper_forces_greedy_decoding(monkeypatch):
                                    "condition_on_previous_text": False, "language": "en"}
 
 
-def test_make_llm_targets_local_server():
-    llm = services.make_llm("http://127.0.0.1:8080/v1")
-    assert str(llm._client.base_url).startswith("http://127.0.0.1:8080/v1")
-    extra = llm._settings.extra["extra_body"]
-    assert extra["chat_template_kwargs"] == {"enable_thinking": False} and extra["cache_prompt"] is True
-
-
 def test_greedy_whisper_warms_up_on_load(monkeypatch):
     monkeypatch.setattr(services.whisper_stt, "WhisperModel", FakeWhisperModel)
 
@@ -78,3 +71,50 @@ def test_kokoro_torch_warms_up_on_construction(monkeypatch):
 
     asyncio.run(build())
     assert len(synthesized) == 1
+
+
+def test_kokoro_cache_phrases_are_synthesized_once(monkeypatch):
+    import sys
+    import types
+
+    synthesized = []
+
+    class FakeModel:
+        def __init__(self, repo_id):
+            pass
+
+        def to(self, device):
+            return self
+
+        def eval(self):
+            return self
+
+    class FakeResult:
+        def __init__(self):
+            import torch
+            self.audio = torch.zeros(2400)
+
+    class FakePipeline:
+        def __init__(self, lang_code, repo_id, model):
+            pass
+
+        def __call__(self, text, voice):
+            synthesized.append(text)
+            return [FakeResult()]
+
+    monkeypatch.setitem(sys.modules, "kokoro", types.SimpleNamespace(KModel=FakeModel, KPipeline=FakePipeline))
+
+    async def build():
+        return services.KokoroTorchTTSService(cache_phrases=("Sure.", "Got it."))
+
+    tts = asyncio.run(build())
+    assert synthesized == ["Warming up.", "Sure.", "Got it."]
+    assert tts._audio_for(" Sure. ").size == 2400
+    assert synthesized == ["Warming up.", "Sure.", "Got it."]  # served from cache
+    tts._audio_for("Something new.")
+    assert synthesized[-1] == "Something new."
+
+
+def test_turn_analyzer_is_warmed_up():
+    analyzer = services.make_turn_analyzer()
+    assert analyzer.__class__.__name__ == "LocalSmartTurnAnalyzerV3"

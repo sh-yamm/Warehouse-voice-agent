@@ -1,6 +1,6 @@
 """Delivery caller agent.
 
-    llama-server:  bash scripts/llama_server.sh models/llm/Qwen3.5-2B-Q4_K_M.gguf
+    llama-server:  bash scripts/llama_server.sh models/llm/Qwen3.5-2B-Q4_K_M.gguf   (serves the intent reader only)
     agent:         python -m voiceagent.agent.bot -t webrtc --order-id 1
     browser:       http://localhost:7860/client  (click Connect; allow the microphone)
     dashboard:     python -m voiceagent.agent.dashboard  ->  http://localhost:7861
@@ -10,10 +10,9 @@ from __future__ import annotations
 import argparse
 
 from loguru import logger
-from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
-from pipecat.flows import FlowManager
+from pipecat.frames.frames import TTSSpeakFrame
 from pipecat.observers.loggers.transcription_log_observer import TranscriptionLogObserver
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker, ProcessorUnusablePolicy
@@ -26,9 +25,11 @@ from pipecat.turns.user_stop import TurnAnalyzerUserTurnStopStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
-from voiceagent.agent.flow import DeliveryFlow
+from voiceagent.agent.dialog import ACKS, DialogManager
+from voiceagent.agent.intent import IntentClassifier
 from voiceagent.agent.metrics import CallRecorder
-from voiceagent.agent.services import GreedyWhisperSTTService, KokoroTorchTTSService, make_llm
+from voiceagent.agent.processor import DialogProcessor
+from voiceagent.agent.services import GreedyWhisperSTTService, KokoroTorchTTSService, make_turn_analyzer
 from voiceagent.agent.tools import CallSession
 from voiceagent.db.repository import Repository
 
@@ -49,13 +50,13 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     args = runner_args.cli_args
     repo = Repository(args.db)
     session = CallSession(repo, args.order_id)
-    flow = DeliveryFlow(session)
+    manager = DialogManager(session)
+    classifier = IntentClassifier(args.llm_url)
     recorder = CallRecorder(repo, args.order_id)
 
     stt = GreedyWhisperSTTService(device="cuda", compute_type="float16",
                                   settings=GreedyWhisperSTTService.Settings(model="distil-small.en"))
-    llm = make_llm(args.llm_url)
-    tts = KokoroTorchTTSService(voice="af_heart")
+    tts = KokoroTorchTTSService(voice="af_heart", cache_phrases=(*ACKS, manager.greeting()))
 
     context = LLMContext()
     context_aggregator = LLMContextAggregatorPair(
@@ -63,7 +64,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         user_params=LLMUserAggregatorParams(
             vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.2)),
             user_turn_strategies=UserTurnStrategies(
-                stop=[TurnAnalyzerUserTurnStopStrategy(turn_analyzer=LocalSmartTurnAnalyzerV3(cpu_count=4))],
+                stop=[TurnAnalyzerUserTurnStopStrategy(turn_analyzer=make_turn_analyzer())],
             ),
         ),
     )
@@ -71,10 +72,9 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         transport.input(),
         stt,
         context_aggregator.user(),
-        llm,
+        DialogProcessor(manager, classifier),
         tts,
         transport.output(),
-        context_aggregator.assistant(),
     ])
     worker = PipelineWorker(
         pipeline,
@@ -85,25 +85,24 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     )
     runner = WorkerRunner(handle_sigint=runner_args.handle_sigint)
     await runner.add_workers(worker)
-    flow_manager = FlowManager(worker=worker, llm=llm, context_aggregator=context_aggregator, transport=transport,
-                               global_functions=flow.global_functions)
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
-        logger.info(f"Calling about order {args.order_id} ({flow.customer_name})")
-        await flow_manager.initialize(flow.greet_node())
+        logger.info(f"Calling about order {args.order_id} ({manager.customer_name})")
+        await worker.queue_frames([TTSSpeakFrame(manager.greeting())])
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
-        recorder.finish(session.outcome, context.get_messages())
+        recorder.finish(session.outcome, manager.transcript)
         logger.info(f"Call {recorder.call_id} ended: {session.outcome or 'abandoned'}")
         await runner.cancel()
 
     try:
         await runner.run()
     finally:
-        # end_conversation stops the pipeline without a client disconnect; close the call row either way.
-        recorder.finish(session.outcome, context.get_messages())
+        # An EndTaskFrame (call finished) stops the pipeline without a client disconnect; close the row either way.
+        recorder.finish(session.outcome, manager.transcript)
+        await classifier.aclose()
         repo.close()
 
 
