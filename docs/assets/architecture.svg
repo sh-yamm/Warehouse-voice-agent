@@ -16,7 +16,7 @@
     </style>
   </defs>
   <rect width="1200" height="720" fill="#ffffff"/>
-  <text x="600" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Warehouse voice agent: system architecture</text>
+  <text x="600" y="34" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Warehouse voice agent: system architecture (July-2025 stack)</text>
   <text x="600" y="56" text-anchor="middle" class="x">Everything runs locally on one RTX 4060 laptop. One pipeline per call. The LLM only reads intent; deterministic code acts and speaks.</text>
 
   <!-- customer -->
@@ -30,18 +30,18 @@
 
   <!-- pipeline container -->
   <rect x="200" y="78" width="770" height="262" rx="16" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
-  <text x="215" y="100" class="h">PIPECAT 1.12 PIPELINE</text>
+  <text x="215" y="100" class="h">PIPECAT 0.0.77 PIPELINE (31 JULY 2025)</text>
 
   <!-- input row -->
   <rect x="215" y="115" width="135" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
   <text x="282" y="143" text-anchor="middle" class="t">WebRTC in</text>
-  <text x="282" y="163" text-anchor="middle" class="x">SmallWebRTC</text>
+  <text x="282" y="163" text-anchor="middle" class="x">SmallWebRTC (0.0.77)</text>
   <text x="282" y="179" text-anchor="middle" class="x">transport</text>
 
   <rect x="368" y="115" width="150" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
   <text x="443" y="140" text-anchor="middle" class="t">Turn-taking</text>
   <text x="443" y="160" text-anchor="middle" class="s">Silero VAD (200 ms)</text>
-  <text x="443" y="177" text-anchor="middle" class="s">Smart Turn v3.2 (CPU)</text>
+  <text x="443" y="177" text-anchor="middle" class="s">Smart Turn v2 (GPU)</text>
 
   <rect x="536" y="115" width="150" height="80" rx="10" fill="#e0f2fe" stroke="#0284c7"/>
   <text x="611" y="140" text-anchor="middle" class="t">Speech to text</text>
@@ -90,11 +90,11 @@
   <!-- brain -->
   <rect x="1000" y="115" width="180" height="120" rx="12" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
   <text x="1090" y="142" text-anchor="middle" class="t">Intent reader</text>
-  <text x="1090" y="162" text-anchor="middle" class="s">llama-server (CUDA)</text>
-  <text x="1090" y="179" text-anchor="middle" class="s">Qwen3.5-2B Q4_K_M</text>
+  <text x="1090" y="162" text-anchor="middle" class="s">llama.cpp b6050 (CUDA)</text>
+  <text x="1090" y="179" text-anchor="middle" class="s">Qwen3-1.7B Q4_K_M</text>
   <text x="1090" y="199" text-anchor="middle" class="x">JSON schema: intent ∈</text>
   <text x="1090" y="214" text-anchor="middle" class="x">intents valid in this state</text>
-  <text x="1090" y="228" text-anchor="middle" class="x">~320 ms / turn</text>
+  <text x="1090" y="228" text-anchor="middle" class="x">~240 ms / turn</text>
   <path class="lp" d="M957,150 L998,150" marker-end="url(#b)"/>
   <path class="lp" d="M998,190 L959,190" marker-end="url(#b)"/>
   <text x="978" y="140" text-anchor="middle" class="x">1 call</text>
@@ -130,7 +130,7 @@
   <!-- observers + dashboard -->
   <rect x="215" y="372" width="360" height="96" rx="12" fill="#f1f5f9" stroke="#64748b"/>
   <text x="395" y="398" text-anchor="middle" class="t">Observers → CallRecorder</text>
-  <text x="395" y="418" text-anchor="middle" class="s">per-turn latency breakdown (Pipecat)</text>
+  <text x="395" y="418" text-anchor="middle" class="s">own latency observer (0.0.77)</text>
   <text x="395" y="436" text-anchor="middle" class="s">barge-in timing · outcome · transcript</text>
   <text x="395" y="454" text-anchor="middle" class="x">watch every frame in the pipeline</text>
   <path class="ln" d="M395,340 L395,370" marker-end="url(#a)" stroke-dasharray="3 3"/>

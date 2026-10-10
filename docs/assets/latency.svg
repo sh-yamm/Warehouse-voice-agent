@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="560" viewBox="0 0 1100 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="540" viewBox="0 0 1100 540" font-family="Segoe UI, Helvetica, Arial, sans-serif">
   <defs>
     <style>
       .t { font-size: 13px; font-weight: 600; fill: #0f172a; }
@@ -7,78 +7,68 @@
       .w { font-size: 12px; font-weight: 600; fill: #ffffff; }
     </style>
   </defs>
-  <rect width="1100" height="560" fill="#ffffff"/>
-  <text x="550" y="30" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Where one turn's time goes (Phase 3, median turn ≈ 735 ms)</text>
-  <text x="550" y="50" text-anchor="middle" class="x">Measured by Pipecat's UserBotLatencyObserver from "customer stopped speaking" to "first agent audio frame sent"</text>
+  <rect width="1100" height="540" fill="#ffffff"/>
+  <text x="550" y="30" text-anchor="middle" font-size="19" font-weight="700" fill="#0f172a">Where one turn's time goes on the July-2025 stack (median turn ≈ 864 ms)</text>
+  <text x="550" y="50" text-anchor="middle" class="x">25 measured replies · stages = medians of the TTFB metrics each service reported · own latency observer (Pipecat 0.0.77 has no breakdown)</text>
 
-  <!-- axis: x = 170 + ms * 1.1 -->
+  <!-- axis: x = 170 + ms * 0.95 -->
   <line x1="170" y1="150" x2="1050" y2="150" stroke="#cbd5e1"/>
   <g class="x" text-anchor="middle">
     <line x1="170" y1="146" x2="170" y2="154" stroke="#94a3b8"/><text x="170" y="168">0</text>
-    <line x1="280" y1="146" x2="280" y2="154" stroke="#94a3b8"/><text x="280" y="168">100</text>
-    <line x1="390" y1="146" x2="390" y2="154" stroke="#94a3b8"/><text x="390" y="168">200</text>
-    <line x1="500" y1="146" x2="500" y2="154" stroke="#94a3b8"/><text x="500" y="168">300</text>
-    <line x1="610" y1="146" x2="610" y2="154" stroke="#94a3b8"/><text x="610" y="168">400</text>
-    <line x1="720" y1="146" x2="720" y2="154" stroke="#94a3b8"/><text x="720" y="168">500</text>
-    <line x1="830" y1="146" x2="830" y2="154" stroke="#94a3b8"/><text x="830" y="168">600</text>
-    <line x1="940" y1="146" x2="940" y2="154" stroke="#94a3b8"/><text x="940" y="168">700 ms</text>
+    <line x1="360" y1="146" x2="360" y2="154" stroke="#94a3b8"/><text x="360" y="168">200</text>
+    <line x1="550" y1="146" x2="550" y2="154" stroke="#94a3b8"/><text x="550" y="168">400</text>
+    <line x1="740" y1="146" x2="740" y2="154" stroke="#94a3b8"/><text x="740" y="168">600</text>
+    <line x1="930" y1="146" x2="930" y2="154" stroke="#94a3b8"/><text x="930" y="168">800 ms</text>
   </g>
   <text x="20" y="117" class="t">One customer turn</text>
   <text x="20" y="134" class="x">(stacked, to scale)</text>
 
-  <rect x="170" y="95" width="220" height="44" rx="4" fill="#94a3b8"/>
-  <text x="280" y="122" text-anchor="middle" class="w">silence wait 200</text>
-  <rect x="390" y="95" width="161" height="44" rx="4" fill="#0284c7"/>
-  <text x="470" y="115" text-anchor="middle" class="w">speech → text</text>
-  <text x="470" y="131" text-anchor="middle" class="w">146</text>
-  <rect x="551" y="95" width="352" height="44" rx="4" fill="#ea580c"/>
-  <text x="727" y="115" text-anchor="middle" class="w">intent reader (Qwen3.5-2B, 1 call)</text>
-  <text x="727" y="131" text-anchor="middle" class="w">≈ 320</text>
-  <rect x="903" y="95" width="56" height="44" rx="4" fill="#cbd5e1"/>
-  <text x="931" y="122" text-anchor="middle" font-size="11" fill="#0f172a">hops</text>
-  <rect x="959" y="95" width="8" height="44" rx="2" fill="#16a34a"/>
-  <text x="975" y="112" class="s" fill="#166534">first audio:</text>
-  <text x="975" y="128" class="s" fill="#166534">cached "Sure." ≈ 0 ms</text>
+  <rect x="170" y="95" width="190" height="44" rx="4" fill="#94a3b8"/>
+  <text x="265" y="122" text-anchor="middle" class="w">silence wait 200</text>
+  <rect x="360" y="95" width="139" height="44" rx="4" fill="#0284c7"/>
+  <text x="429" y="115" text-anchor="middle" class="w">speech → text</text>
+  <text x="429" y="131" text-anchor="middle" class="w">146</text>
+  <rect x="499" y="95" width="229" height="44" rx="4" fill="#ea580c"/>
+  <text x="613" y="115" text-anchor="middle" class="w">intent reader (Qwen3-1.7B)</text>
+  <text x="613" y="131" text-anchor="middle" class="w">241</text>
+  <rect x="728" y="95" width="263" height="44" rx="4" fill="#cbd5e1"/>
+  <text x="859" y="115" text-anchor="middle" font-size="11" fill="#0f172a">Smart Turn v2 ≈ 72 · aggregator wait 100</text>
+  <text x="859" y="131" text-anchor="middle" font-size="11" fill="#0f172a">+ pipeline hops ≈ 277</text>
+  <rect x="991" y="95" width="8" height="44" rx="2" fill="#16a34a"/>
+  <text x="1003" y="112" class="s" fill="#166534">cached</text>
+  <text x="1003" y="128" class="s" fill="#166534">opener</text>
 
-  <line x1="940" y1="85" x2="940" y2="150" stroke="#dc2626" stroke-dasharray="4 3"/>
-  <text x="940" y="80" text-anchor="middle" font-size="11" fill="#dc2626">700 ms target</text>
+  <line x1="835" y1="85" x2="835" y2="150" stroke="#dc2626" stroke-dasharray="4 3"/>
+  <text x="835" y="80" text-anchor="middle" font-size="11" fill="#dc2626">700 ms target</text>
 
-  <text x="170" y="200" class="x">Dialog logic, database and template rendering take &lt; 2 ms. The rest of the reply is synthesized by Kokoro while the cached opener plays.</text>
-  <text x="170" y="216" class="x">Whisper is pre-warmed when the customer starts talking: an idle laptop decoded in ~400 ms; warmed, ~120–150 ms.</text>
+  <text x="170" y="200" class="x">Same design as main: one intent read per turn, deterministic dialog, cached openers, Whisper pre-warm at speech start.</text>
+  <text x="170" y="216" class="x">The extra time vs main comes from Smart Turn v2 (95M-parameter wav2vec2; v3's 8 MB model arrived Sept 2025) and 0.0.77's aggregator wait.</text>
 
-  <!-- p50 history -->
-  <text x="20" y="268" font-size="16" font-weight="700" fill="#0f172a">Median reply latency across iterations</text>
+  <!-- comparison -->
+  <text x="20" y="268" font-size="16" font-weight="700" fill="#0f172a">Median reply latency: July-2025 stack vs main (October-2026 stack)</text>
   <g>
-    <text x="290" y="322" text-anchor="end" class="t">Phase 2: Flows + LLM tool calls</text>
-    <text x="290" y="337" text-anchor="end" class="x">2 LLM passes / turn, LLM writes replies</text>
-    <rect x="300" y="307" width="715" height="30" rx="4" fill="#dc2626"/>
-    <text x="1008" y="327" text-anchor="end" class="w">≈ 5,500 ms</text>
+    <text x="290" y="312" text-anchor="end" class="t">July-2025, round 1</text>
+    <text x="290" y="327" text-anchor="end" class="x">0.0.77 default aggregator wait 0.5 s</text>
+    <rect x="300" y="297" width="456" height="30" rx="4" fill="#f59e0b"/>
+    <text x="765" y="317" class="s">1,170 ms</text>
 
-    <text x="290" y="372" text-anchor="end" class="t">Phase 3, round 1</text>
-    <text x="290" y="387" text-anchor="end" class="x">intent reader + templates</text>
-    <rect x="300" y="357" width="131" height="30" rx="4" fill="#f59e0b"/>
-    <text x="440" y="377" class="s">1,004 ms</text>
+    <text x="290" y="362" text-anchor="end" class="t">July-2025, round 2</text>
+    <text x="290" y="377" text-anchor="end" class="x">aggregator wait cut to 0.1 s</text>
+    <rect x="300" y="347" width="337" height="30" rx="4" fill="#16a34a"/>
+    <text x="646" y="367" class="s">864 ms</text>
 
-    <text x="290" y="422" text-anchor="end" class="t">Phase 3, round 2</text>
-    <text x="290" y="437" text-anchor="end" class="x">+ Whisper pre-warm, 1.2 s turn fallback</text>
-    <rect x="300" y="407" width="96" height="30" rx="4" fill="#16a34a"/>
-    <text x="405" y="427" class="s">735 ms</text>
+    <text x="290" y="412" text-anchor="end" class="t">Main branch</text>
+    <text x="290" y="427" text-anchor="end" class="x">Pipecat 1.12 · Smart Turn v3.2 · Qwen3.5-2B</text>
+    <rect x="300" y="397" width="287" height="30" rx="4" fill="#0284c7"/>
+    <rect x="587" y="397" width="41" height="30" rx="4" fill="#7dd3fc"/>
+    <text x="637" y="417" class="s">735–841 ms</text>
 
-    <text x="290" y="472" text-anchor="end" class="t">After code review</text>
-    <text x="290" y="487" text-anchor="end" class="x">scripted voices, rerun</text>
-    <rect x="300" y="457" width="109" height="30" rx="4" fill="#16a34a"/>
-    <text x="418" y="477" class="s">841 ms</text>
-
-    <text x="290" y="522" text-anchor="end" class="t">Live call, human voice</text>
-    <text x="290" y="537" text-anchor="end" class="x">browser + laptop mic</text>
-    <rect x="300" y="507" width="113" height="30" rx="4" fill="#16a34a"/>
-    <text x="422" y="527" class="s">871 ms</text>
+    <text x="290" y="462" text-anchor="end" class="t">Phase 2 design (for scale)</text>
+    <text x="290" y="477" text-anchor="end" class="x">LLM tool calls, 2 passes / turn</text>
+    <rect x="300" y="447" width="760" height="30" rx="4" fill="#dc2626"/>
+    <text x="1052" y="467" text-anchor="end" class="w">≈ 5,500 ms (bar clipped)</text>
   </g>
-  <line x1="391" y1="298" x2="391" y2="545" stroke="#dc2626" stroke-dasharray="4 3"/>
-  <text x="396" y="300" font-size="11" fill="#dc2626">700 ms</text>
-  <text x="560" y="390" class="s">Unrequested order changes:</text>
-  <text x="560" y="410" class="s"><tspan font-weight="700" fill="#dc2626">5 in one call</tspan> with LLM tool calls →</text>
-  <text x="560" y="430" class="s"><tspan font-weight="700" fill="#16a34a">0</tspan> across 9 scripted calls with the intent reader</text>
-  <text x="560" y="460" class="x">p95 ≈ 1.7 s: short answers ("Yes.") that Smart Turn judges</text>
-  <text x="560" y="476" class="x">incomplete wait out its 1.2 s silence fallback</text>
+  <line x1="573" y1="288" x2="573" y2="485" stroke="#dc2626" stroke-dasharray="4 3"/>
+  <text x="578" y="290" font-size="11" fill="#dc2626">700 ms</text>
+  <text x="20" y="515" class="x">p95: July-2025 ≈ 2.6 s (cold first intent reads, occasional slow decodes); main ≈ 1.7 s</text>
 </svg>
