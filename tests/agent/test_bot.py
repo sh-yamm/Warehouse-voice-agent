@@ -10,3 +10,10 @@ def test_parser_defaults():
 def test_parser_ignores_runner_flags():
     args, rest = build_parser().parse_known_args(["--order-id", "7", "--port", "7870", "-t", "webrtc"])
     assert args.order_id == 7 and rest == ["--port", "7870", "-t", "webrtc"]
+
+
+def test_user_aggregator_does_not_wait_half_a_second():
+    from voiceagent.agent.bot import make_user_aggregator
+    # 0.0.77 waits aggregation_timeout (0.5 s default) for late transcripts after every turn; DialogProcessor
+    # already joins late messages into the next turn, so the wait is cut to 0.1 s.
+    assert make_user_aggregator()._params.aggregation_timeout == 0.1

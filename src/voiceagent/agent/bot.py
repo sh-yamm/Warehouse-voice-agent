@@ -18,7 +18,7 @@ from pipecat.observers.loggers.transcription_log_observer import TranscriptionLo
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineParams, PipelineTask
-from pipecat.processors.aggregators.llm_response import LLMUserContextAggregator
+from pipecat.processors.aggregators.llm_response import LLMUserAggregatorParams, LLMUserContextAggregator
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
@@ -43,6 +43,12 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def make_user_aggregator() -> LLMUserContextAggregator:
+    """0.0.77 waits aggregation_timeout (0.5 s by default) for late transcripts after each turn, which added ~0.5 s
+    to every reply. DialogProcessor joins late-arriving user messages into the next turn, so 0.1 s is enough."""
+    return LLMUserContextAggregator(OpenAILLMContext(), params=LLMUserAggregatorParams(aggregation_timeout=0.1))
+
+
 # Pipecat 0.0.77's runner parses sys.argv itself and rejects unknown flags, so ours are split off first.
 ARGS = build_parser().parse_known_args([])[0]
 
@@ -56,7 +62,7 @@ async def run_bot(transport: BaseTransport, args: argparse.Namespace):
 
     stt = GreedyWhisperSTTService(model="distil-small.en", device="cuda", compute_type="float16")
     tts = KokoroTorchTTSService(voice="af_heart", cache_phrases=(*ACKS, manager.greeting()))
-    user_aggregator = LLMUserContextAggregator(OpenAILLMContext())
+    user_aggregator = make_user_aggregator()
 
     pipeline = Pipeline([
         transport.input(),
