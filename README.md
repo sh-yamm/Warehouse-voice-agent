@@ -218,7 +218,7 @@ Typical breakdown, from Pipecat's latency observer:
 
 ### Correctness
 - **0 order changes the customer didn't ask for** across 9 scripted calls plus the demo. The Phase 2 design made 5 in one call.
-- **Every safety rule has a regression test,** 200 tests in total. Examples:
+- **Every safety rule has a regression test,** 202 tests in total. Examples:
   - "No no, keep it" never cancels.
   - An address misheard by speech recognition is never saved without a yes. This was found in a live test call and fixed.
   - A quantity copied from the agent's sentence is ignored.
