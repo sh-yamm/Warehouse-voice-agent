@@ -12,7 +12,7 @@ It runs entirely on one laptop (RTX 4060, 8 GB) using only open-weight models. N
 | **Greeting after the call connects** | **≈ 20–85 ms** (pre-synthesized) |
 | **Order changes the customer didn't ask for** | **0** across all recorded calls (the first design made 5 in one call) |
 | **Intent-reader accuracy** (48 labelled utterances) | **93.8 %**, 324 ms median, Qwen3.5-2B 4-bit |
-| **Test suite** | 200 tests (domain, dialog, intent reader, pipeline glue, services, metrics) |
+| **Test suite** | 202 tests (domain, dialog, intent reader, pipeline glue, services, metrics) |
 | **Cost** | ₹0. Every model is open-weight and runs locally. |
 
 ---
@@ -274,7 +274,7 @@ scripts/
 ├── chat_templates/qwen3.5-multi-system.jinja   # template patch for llama-server
 └── smoke_tts.py
 
-tests/                           # 200 tests: domain/, agent/, bench/
+tests/                           # 202 tests: domain/, agent/, bench/
 docs/
 ├── specs/                       # design spec
 ├── superpowers/plans/           # the implementation plans each phase was built from
@@ -330,7 +330,7 @@ Open **http://localhost:7860/client**, click **Connect**, allow the microphone, 
 ## 11. Testing and measurement tools
 
 ```bash
-.venv/Scripts/python -m pytest                                  # 200 tests, ~15 s, no GPU needed
+.venv/Scripts/python -m pytest                                  # 202 tests, ~15 s, no GPU needed
 .venv/Scripts/python -m bench.intent_eval --model-name qwen3.5-2b-q4km   # needs llama-server
 .venv/Scripts/python scripts/scripted_call.py --url http://localhost:7860/api/offer \
     --mix-out call.mp3 --duration 120 "20:Yes, speaking." "34:Tomorrow evening." "48:Yes, book that."
